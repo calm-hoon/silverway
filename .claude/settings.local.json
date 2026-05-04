@@ -4,7 +4,10 @@
       "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(powershell -Command \"Expand-Archive -Path 'SilverWay Design System.zip' -DestinationPath './extracted' -Force\")",
+      "Bash(dir extracted *)",
+      "Bash(npx vitest *)"
     ]
   }
 }

@@ -1,26 +1,134 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Pretendard Variable";
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/PretendardVariable.ttf") format("truetype-variations"),
+       url("/fonts/PretendardVariable.ttf") format("truetype");
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand */
+  --sw-primary:         #0A5A75;
+  --sw-primary-hover:   #074A60;
+  --sw-primary-press:   #053C4F;
+  --sw-primary-50:      #E1EDF2;
+  --sw-primary-100:     #B5D5DF;
+  --sw-accent:          #E89B5A;
+  --sw-accent-50:       #FBEFE3;
+  --sw-cta-orange:      #F4823C;
+  --sw-cta-orange-hover:#DE6F2C;
+
+  /* Surfaces */
+  --sw-paper:           #FAF7F2;
+  --sw-card:            #FFFFFF;
+  --sw-paper-elev:      #F5F1E8;
+
+  /* Text */
+  --sw-ink:             #1C1A17;
+  --sw-ink-2:           #5A544C;
+  --sw-ink-3:           #8A847A;
+  --sw-ink-inv:         #FFFFFF;
+
+  /* Hairlines */
+  --sw-hairline:        #E8E2D6;
+  --sw-hairline-strong: #D4CCBC;
+
+  /* Semantic */
+  --sw-danger:          #DC2626;
+  --sw-danger-bg:       #FEE2E2;
+  --sw-danger-50:       #FEF2F2;
+  --sw-warning:         #F97316;
+  --sw-warning-bg:      #FFEDD5;
+  --sw-warning-50:      #FFF7ED;
+  --sw-safe:            #16A34A;
+  --sw-safe-bg:         #DCFCE7;
+  --sw-safe-50:         #F0FDF4;
+
+  /* Kakao */
+  --sw-kakao:           #FEE500;
+  --sw-kakao-ink:       #181600;
+
+  /* Shadows — tinted, never pure black */
+  --sw-e1: 0 1px 2px rgba(28,43,51,0.06);
+  --sw-e2: 0 4px 16px rgba(28,43,51,0.08);
+  --sw-e3: 0 8px 32px rgba(28,43,51,0.12);
+  --sw-e4: 0 16px 48px rgba(28,43,51,0.16);
+
+  /* Radius */
+  --sw-r-sm:   8px;
+  --sw-r-md:   12px;
+  --sw-r-lg:   16px;
+  --sw-r-xl:   24px;
+  --sw-r-full: 9999px;
+
+  /* Touch target */
+  --sw-touch: 52px;
+
+  /* Typography */
+  --sw-font: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont,
+             "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+
+  --sw-fs-xs:   14px;
+  --sw-fs-sm:   16px;
+  --sw-fs-base: 18px;
+  --sw-fs-md:   20px;
+  --sw-fs-lg:   24px;
+  --sw-fs-xl:   28px;
+  --sw-fs-2xl:  34px;
+  --sw-fs-3xl:  44px;
+  --sw-fs-num:  56px;
+
+  --sw-lh-tight:   1.2;
+  --sw-lh-snug:    1.4;
+  --sw-lh-normal:  1.55;
+  --sw-lh-relaxed: 1.625;
+
+  --sw-fw-regular: 400;
+  --sw-fw-medium:  500;
+  --sw-fw-bold:    700;
+  --sw-fw-black:   800;
+
+  --sw-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --sw-d-fast: 200ms;
+  --sw-d-med:  280ms;
+  --sw-d-slow: 360ms;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html, body {
+  background: var(--sw-paper);
+  color: var(--sw-ink);
+  font-family: var(--sw-font);
+  font-size: var(--sw-fs-base);
+  line-height: var(--sw-lh-relaxed);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ---------- TYPE SCALE ---------- */
+.sw-display  { font-size: var(--sw-fs-3xl); font-weight: var(--sw-fw-black); line-height: var(--sw-lh-tight);   letter-spacing: -0.02em; }
+.sw-h1       { font-size: var(--sw-fs-2xl); font-weight: var(--sw-fw-bold);  line-height: var(--sw-lh-snug);    letter-spacing: -0.015em; }
+.sw-h2       { font-size: var(--sw-fs-xl);  font-weight: var(--sw-fw-bold);  line-height: var(--sw-lh-snug);    letter-spacing: -0.01em; }
+.sw-h3       { font-size: var(--sw-fs-lg);  font-weight: var(--sw-fw-bold);  line-height: var(--sw-lh-snug); }
+.sw-body     { font-size: var(--sw-fs-md);  font-weight: var(--sw-fw-regular); line-height: var(--sw-lh-relaxed); }
+.sw-body-min { font-size: var(--sw-fs-base);font-weight: var(--sw-fw-regular); line-height: var(--sw-lh-relaxed); }
+.sw-label    { font-size: var(--sw-fs-base);font-weight: var(--sw-fw-medium);  line-height: var(--sw-lh-normal); }
+.sw-caption  { font-size: var(--sw-fs-sm);  font-weight: var(--sw-fw-regular); line-height: var(--sw-lh-normal); color: var(--sw-ink-2); }
+.sw-meta     { font-size: var(--sw-fs-xs);  font-weight: var(--sw-fw-medium);  line-height: var(--sw-lh-normal); color: var(--sw-ink-3); letter-spacing: 0.01em; }
+.sw-num      { font-feature-settings: "tnum"; font-weight: var(--sw-fw-black); line-height: var(--sw-lh-tight); }
+.sw-num-xl   { font-size: var(--sw-fs-num); font-feature-settings: "tnum"; font-weight: var(--sw-fw-black); line-height: var(--sw-lh-tight); letter-spacing: -0.02em; }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ---------- CARDS ---------- */
+.sw-card      { background: var(--sw-card); border-radius: var(--sw-r-lg); box-shadow: var(--sw-e2); padding: 24px; }
+.sw-card-hero { background: var(--sw-card); border-radius: var(--sw-r-xl); box-shadow: var(--sw-e3); padding: 24px; }
+
+/* ---------- FOCUS RING (always visible — for screen readers / TalkBack) ---------- */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sw-primary), 0 0 0 6px rgba(10, 90, 117, 0.20);
 }

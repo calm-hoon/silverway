@@ -1,14 +1,72 @@
+import Link from "next/link";
+import { Icon } from "@/components/ui/Icon";
+import { RouteCompare } from "@/components/RouteCompare";
+import { AIReport } from "@/components/AIReport";
+
 export default function TestResultPage() {
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-      <section className="mx-auto max-w-3xl space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold text-blue-700">/result/test</p>
-        <h1 className="text-3xl font-bold">테스트 결과 페이지 Placeholder</h1>
-        <p className="leading-7 text-slate-600">
-          향후 sampleAnalysis 기반 결과 화면을 확인하는 테스트 페이지입니다.
-          운전 위험 지수, 대체 이동 경로, 과거 패턴 기반 예측형 혼잡도, 가족 공유용 리포트 영역이 들어갈 예정입니다.
-        </p>
-      </section>
+    <main style={{
+      minHeight: "100dvh",
+      background: "var(--sw-paper)",
+      display: "flex", flexDirection: "column",
+    }}>
+      <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
+
+      {/* header */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 12,
+        padding: "8px 16px 16px", minHeight: 56,
+        maxWidth: 480, width: "100%", margin: "0 auto",
+      }}>
+        <Link href="/" style={{ textDecoration: "none" }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: "var(--sw-r-md)", border: "none",
+            background: "transparent", cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Icon name="back" size={26} color="var(--sw-ink)" />
+          </div>
+        </Link>
+        <div style={{
+          flex: 1, fontSize: "var(--sw-fs-md)", fontWeight: 700,
+          color: "var(--sw-ink)", textAlign: "center",
+        }}>
+          경로 비교 결과
+        </div>
+        <div style={{ width: 44 }} />
+      </div>
+
+      {/* destination label */}
+      <div style={{
+        maxWidth: 480, width: "100%", margin: "0 auto",
+        padding: "0 20px 8px",
+      }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          fontSize: "var(--sw-fs-sm)", color: "var(--sw-ink-2)", fontWeight: 500,
+        }}>
+          <Icon name="pin" size={18} color="var(--sw-primary)" />
+          서울아산병원까지
+        </div>
+      </div>
+
+      <div style={{
+        maxWidth: 480, width: "100%", margin: "0 auto",
+        padding: "0 20px 40px",
+        display: "flex", flexDirection: "column", gap: 32,
+      }}>
+        <RouteCompare recommendation="transit" weather="rain" />
+
+        <div style={{ borderTop: "1px solid var(--sw-hairline)", paddingTop: 32 }}>
+          <AIReport
+            name="어머니"
+            destination="서울아산병원"
+            recommendation="transit"
+            drivingScore={78}
+            transitRoute="지하철 + 도보 4분"
+          />
+        </div>
+      </div>
     </main>
   );
 }
