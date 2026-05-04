@@ -1,0 +1,67 @@
+[
+  {
+    "sido": "대전광역시",
+    "sigungu": "서구",
+    "dong": "둔산동",
+    "accident_count": 18,
+    "elderly_driver_count": 7,
+    "fatal_count": 0,
+    "severe_count": 3,
+    "risk_score": 62,
+    "center_lat": 36.3504,
+    "center_lng": 127.3845,
+    "source_year": 2024
+  },
+  {
+    "sido": "대전광역시",
+    "sigungu": "유성구",
+    "dong": "노은동",
+    "accident_count": 14,
+    "elderly_driver_count": 5,
+    "fatal_count": 0,
+    "severe_count": 2,
+    "risk_score": 48,
+    "center_lat": 36.4011,
+    "center_lng": 127.3371,
+    "source_year": 2024
+  },
+  {
+    "sido": "대전광역시",
+    "sigungu": "중구",
+    "dong": "대흥동",
+    "accident_count": 22,
+    "elderly_driver_count": 9,
+    "fatal_count": 1,
+    "severe_count": 4,
+    "risk_score": 74,
+    "center_lat": 36.3247,
+    "center_lng": 127.4272,
+    "source_year": 2024
+  },
+  {
+    "sido": "대전광역시",
+    "sigungu": "동구",
+    "dong": "천동",
+    "accident_count": 11,
+    "elderly_driver_count": 4,
+    "fatal_count": 0,
+    "severe_count": 2,
+    "risk_score": 41,
+    "center_lat": 36.3187,
+    "center_lng": 127.4521,
+    "source_year": 2024
+  },
+  {
+    "sido": "대전광역시",
+    "sigungu": "대덕구",
+    "dong": "신탄진동",
+    "accident_count": 9,
+    "elderly_driver_count": 3,
+    "fatal_count": 0,
+    "severe_count": 1,
+    "risk_score": 35,
+    "center_lat": 36.4382,
+    "center_lng": 127.4139,
+    "source_year": 2024
+  }
+]

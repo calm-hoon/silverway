@@ -1,0 +1,32 @@
+[
+  {
+    "odsay_station_name": "시청",
+    "afc_station_name": "시청역",
+    "display_name": "시청역"
+  },
+  {
+    "odsay_station_name": "정부청사",
+    "afc_station_name": "정부청사역",
+    "display_name": "정부청사역"
+  },
+  {
+    "odsay_station_name": "대전",
+    "afc_station_name": "대전역",
+    "display_name": "대전역"
+  },
+  {
+    "odsay_station_name": "충남대",
+    "afc_station_name": "충남대역",
+    "display_name": "충남대역"
+  },
+  {
+    "odsay_station_name": "갈마",
+    "afc_station_name": "갈마역",
+    "display_name": "갈마역"
+  },
+  {
+    "odsay_station_name": "중구청",
+    "afc_station_name": "중구청역",
+    "display_name": "중구청역"
+  }
+]
