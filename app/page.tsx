@@ -1,153 +1,109 @@
-import Link from "next/link";
-import { Icon } from "@/components/ui/Icon";
+import { HeroSection } from "@/components/home/HeroSection";
+import { FeatureCard } from "@/components/home/FeatureCard";
+import { Section } from "@/components/ui/Section";
+import { StatusPill } from "@/components/ui/StatusPill";
+
+const FEATURES = [
+  {
+    icon: "alert",
+    title: "운전 위험 지수",
+    description:
+      "공공데이터 기반 사고 패턴, 시간대, 기상 조건, 이동 지역 특성을 조합한 운전 위험 지수를 확인하세요.",
+  },
+  {
+    icon: "bus",
+    title: "대중교통 대체 경로",
+    description:
+      "목적지까지 이동 편의 동선을 확인하고, 이동 상황에 맞는 안전한 이동 방법을 선택하세요.",
+  },
+  {
+    icon: "clock",
+    title: "과거 패턴 기반 예측형 혼잡도",
+    description:
+      "AFC(자동요금징수) 데이터를 바탕으로 시간대별 대중교통 혼잡도를 사전에 확인하세요.",
+  },
+  {
+    icon: "users",
+    title: "가족 공유용 리포트",
+    description:
+      "분석 결과를 가족과 함께 확인하고, 면허 반납을 함께 논의할 수 있는 안내문을 제공합니다.",
+  },
+];
 
 export default function HomePage() {
-  const recents = [
-    { name: "서울아산병원",    date: "어제 · 대중교통" },
-    { name: "잠실 종합운동장", date: "3일 전 · 운전" },
-  ];
-
   return (
-    <main style={{
-      minHeight: "100dvh",
-      background: "var(--sw-paper)",
-      display: "flex",
-      flexDirection: "column",
-    }}>
-      {/* status bar spacer */}
-      <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
+    <main
+      style={{
+        minHeight: "100dvh",
+        background: "var(--sw-paper)",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 480,
+          width: "100%",
+          margin: "0 auto",
+          padding: "32px 20px 48px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 40,
+        }}
+      >
+        <HeroSection />
 
-      <div style={{
-        maxWidth: 480, width: "100%", margin: "0 auto",
-        padding: "28px 20px 40px",
-        display: "flex", flexDirection: "column", gap: 24, flex: 1,
-      }}>
-        {/* greeting */}
-        <div>
-          <div style={{ fontSize: "var(--sw-fs-sm)", color: "var(--sw-ink-2)", fontWeight: 500 }}>
-            안녕하세요, 영자 님
-          </div>
-          <h1 style={{
-            fontSize: "var(--sw-fs-2xl)", fontWeight: 800, lineHeight: 1.25,
-            letterSpacing: "-0.015em", margin: "6px 0 0", color: "var(--sw-ink)",
-          }}>
-            오늘은 어디로<br />가시나요?
-          </h1>
-        </div>
-
-        {/* CTA button */}
-        <Link href="/analyze" style={{ textDecoration: "none" }}>
-          <div style={{
-            width: "100%", textAlign: "left",
-            background: "var(--sw-primary)",
-            borderRadius: "var(--sw-r-xl)",
-            padding: 20,
-            boxShadow: "0 8px 32px rgba(10,90,117,0.30)",
-            color: "#fff",
-            display: "flex", alignItems: "center", gap: 14,
-          }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: "var(--sw-r-lg)",
-              background: "rgba(255,255,255,0.15)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              <Icon name="pin" size={28} color="#fff" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "var(--sw-fs-md)", fontWeight: 700 }}>안전한 길 찾아드릴게요</div>
-              <div style={{ fontSize: "var(--sw-fs-sm)", opacity: 0.85, marginTop: 2 }}>날씨 · 사고 · 경로 비교</div>
-            </div>
-            <Icon name="next" size={26} color="#fff" />
-          </div>
-        </Link>
-
-        {/* today status */}
-        <div>
-          <div style={{
-            fontSize: "var(--sw-fs-xs)", fontWeight: 700, color: "var(--sw-ink-3)",
-            letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 12,
-          }}>
-            오늘의 상황
-          </div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <div style={{
-              flex: 1, background: "var(--sw-card)", borderRadius: "var(--sw-r-lg)",
-              padding: 16, boxShadow: "var(--sw-e2)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Icon name="rain" size={22} color="var(--sw-warning)" />
-                <span style={{ fontSize: "var(--sw-fs-xs)", fontWeight: 700, color: "#9A3412" }}>비 옴</span>
-              </div>
-              <div style={{
-                fontSize: "var(--sw-fs-lg)", fontWeight: 800, color: "var(--sw-ink)",
-                marginTop: 8, fontFeatureSettings: '"tnum"',
-              }}>
-                14°
-              </div>
-              <div style={{ fontSize: 13, color: "var(--sw-ink-2)", marginTop: 2 }}>오후 내내 흐림</div>
-            </div>
-
-            <div style={{
-              flex: 1, background: "var(--sw-card)", borderRadius: "var(--sw-r-lg)",
-              padding: 16, boxShadow: "var(--sw-e2)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Icon name="alert" size={22} color="var(--sw-danger)" />
-                <span style={{ fontSize: "var(--sw-fs-xs)", fontWeight: 700, color: "#991B1B" }}>주변 사고</span>
-              </div>
-              <div style={{
-                fontSize: "var(--sw-fs-lg)", fontWeight: 800, color: "var(--sw-ink)",
-                marginTop: 8, fontFeatureSettings: '"tnum"',
-              }}>
-                3건
-              </div>
-              <div style={{ fontSize: 13, color: "var(--sw-ink-2)", marginTop: 2 }}>최근 24시간</div>
-            </div>
-          </div>
-        </div>
-
-        {/* recent places */}
-        <div>
-          <div style={{
-            fontSize: "var(--sw-fs-xs)", fontWeight: 700, color: "var(--sw-ink-3)",
-            letterSpacing: "0.04em", textTransform: "uppercase", marginBottom: 12,
-          }}>
-            최근 다녀오신 곳
-          </div>
-          <div style={{
-            background: "var(--sw-card)", borderRadius: "var(--sw-r-lg)",
-            padding: "4px 16px", boxShadow: "var(--sw-e1)",
-          }}>
-            {recents.map((r, i) => (
-              <div key={r.name} style={{
-                display: "flex", alignItems: "center", gap: 12, padding: "14px 0",
-                borderBottom: i < recents.length - 1 ? "1px solid var(--sw-hairline)" : "none",
-              }}>
-                <Icon name="pin" size={20} color="var(--sw-ink-2)" />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "var(--sw-fs-sm)", fontWeight: 600, color: "var(--sw-ink)" }}>
-                    {r.name}
-                  </div>
-                  <div style={{ fontSize: "var(--sw-fs-xs)", color: "var(--sw-ink-3)", marginTop: 2 }}>
-                    {r.date}
-                  </div>
-                </div>
-              </div>
+        <Section
+          title="주요 기능"
+          description="SilverWay는 공공데이터와 AI를 결합해 고령자의 이동 결정을 돕습니다."
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 12,
+            }}
+          >
+            {FEATURES.map((f) => (
+              <FeatureCard key={f.title} icon={f.icon} title={f.title} description={f.description} />
             ))}
           </div>
-        </div>
+        </Section>
 
-        {/* dev links */}
-        <div style={{
-          marginTop: "auto", paddingTop: 8,
-          display: "flex", gap: 8,
-          fontSize: 13, color: "var(--sw-ink-3)",
-        }}>
-          <Link href="/result/test" style={{ color: "var(--sw-primary)", fontWeight: 600 }}>
-            테스트 결과 보기
-          </Link>
-        </div>
+        {/* service note */}
+        <Section title="서비스 안내">
+          <div
+            style={{
+              background: "var(--sw-card)",
+              borderRadius: "var(--sw-r-lg)",
+              boxShadow: "var(--sw-e1)",
+              padding: "20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              <StatusPill label="Mock API" tone="muted" />
+              <StatusPill label="과거 패턴 기반 예측형 혼잡도" tone="info" />
+            </div>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: 20,
+                fontSize: "var(--sw-fs-sm)",
+                color: "var(--sw-ink-2)",
+                lineHeight: "var(--sw-lh-relaxed)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              <li>운전 위험 지수는 실제 사고 가능성이 아닌 의사결정 보조용 지수입니다.</li>
+              <li>혼잡도는 AFC 과거 데이터 기반 예측이며 실시간 정보가 아닙니다.</li>
+              <li>장소검색·경로 계산은 현재 Mock 상태입니다.</li>
+              <li>면허 반납은 당사자와 가족이 함께 논의할 사항입니다.</li>
+            </ul>
+          </div>
+        </Section>
       </div>
     </main>
   );

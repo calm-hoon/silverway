@@ -7,7 +7,14 @@
       "Bash(npm install *)",
       "Bash(powershell -Command \"Expand-Archive -Path 'SilverWay Design System.zip' -DestinationPath './extracted' -Force\")",
       "Bash(dir extracted *)",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(not exist *)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"Z:\\\\silverway\\\\silverway\\\\tests\\\\result\")",
+      "Bash(Out-Null)",
+      "Bash(Write-Output \"OK\")",
+      "PowerShell(New-Item *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/@supabase/supabase-js/package.json'\\).version\\)\")",
+      "Bash(node -e \"const t = require\\('./node_modules/@supabase/supabase-js'\\); console.log\\(Object.keys\\(t\\)\\)\")"
     ]
   }
 }

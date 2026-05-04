@@ -197,21 +197,21 @@ export type AnalysisResult = {
 };
 
 // ──────────────────────────────────────────────
-// 8. Supabase placeholder 타입
-// Supabase CLI generated type 준비 전 임시 구조
+// 8. Supabase 타입 — 001_init_schema.sql 기준
 // ──────────────────────────────────────────────
-
-export type Database = {
-  public: {
-    Tables: Record<string, never>;
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-  };
-};
 
 /** analysis_logs 행 조회용 최소 타입 */
 export type AnalysisLogRow = {
   id: string;
+  origin_name: string | null;
+  origin_address: string | null;
+  origin_lat: number | null;
+  origin_lng: number | null;
+  destination_name: string | null;
+  destination_address: string | null;
+  destination_lat: number | null;
+  destination_lng: number | null;
+  departure_time: string | null;
   age_group: AgeGroup | null;
   risk_score: number | null;
   risk_level: RiskLevel | null;
@@ -225,3 +225,26 @@ export type AnalysisLogRow = {
 
 /** analysis_logs 행 삽입용 최소 타입 */
 export type AnalysisLogInsert = Omit<AnalysisLogRow, "id" | "created_at">;
+
+export type AnalysisStorageSource = "SUPABASE" | "FALLBACK";
+
+export type ResultLookupMeta = {
+  requestedId: string;
+  source: AnalysisStorageSource;
+  fallback: boolean;
+};
+
+export type Database = {
+  public: {
+    Tables: {
+      analysis_logs: {
+        Row: AnalysisLogRow;
+        Insert: AnalysisLogInsert;
+        Update: Partial<AnalysisLogInsert>;
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+  };
+};

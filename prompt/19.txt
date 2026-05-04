@@ -1,0 +1,350 @@
+너는 15년차 Next.js 개발자이자 공공데이터·AI 서비스 MVP 설계 전문가이며, AI API 연동과 fallback 설계에 익숙한 풀스택 개발자다.
+나는 2026년 대전광역시 공공데이터·AI 활용 창업경진대회에 제출할 SilverWay 서비스를 개발하고 있다.
+
+서비스명은 SilverWay이고, 한 줄 정의는 “AI 기반 고령자 이동 및 면허 반납 의사결정 지원 서비스”다.
+목표는 공모전 시연용 MVP를 넘어 실제 배포 가능한 앱으로 확장 가능한 구조를 만드는 것이다.
+
+현재까지 완료된 작업:
+- 작업 1. Next.js 프로젝트 초기화
+- 작업 2. Supabase 스키마 작성
+- 작업 2.5. Supabase 연결 설정
+- 작업 3. 타입 정의 작성
+- 작업 4. sampleAnalysis 작성
+- 작업 4.5. seed 데이터 작성
+- 작업 5. calculateDrivingRisk 함수 작성
+- 작업 5.5. 테스트 환경 설정
+- 작업 6. calculateCongestion 함수 작성
+- 작업 7. generateTemplateReport 작성
+- 작업 8. Mock /api/analyze 작성
+- 작업 8.5. 디자인 시스템 정의
+- 작업 9. 입력 화면 작성
+- 작업 10. 결과 화면 작성
+- 작업 11. /result/[id] 구조 작성
+- 작업 11.5. 결과 저장/조회 구조 작성
+- 작업 12. ODsay 연동
+- 작업 13. Weather 연동
+
+이번에는 작업 14 “Claude 연동”을 진행한다.
+
+중요:
+- 이번 작업은 디자인 변경/벤치마킹 반영 단계가 아니다.
+- 기존 UI 디자인은 가능한 유지한다.
+- 이번 작업은 Claude API를 서버 측에서 호출해 자연어 리포트를 생성하는 단계다.
+- Claude API 실패, 키 누락, 응답 오류, 제한 시간 초과 시 반드시 generateTemplateReport fallback을 사용한다.
+- 아직 Kakao Local API, Kakao Map 연동은 하지 않는다.
+- ODsay 연동 흐름은 유지한다.
+- Weather 연동 흐름은 유지한다.
+- Supabase 저장/조회 흐름은 유지한다.
+- 아직 회원가입/auth 구현하지 않는다.
+- 아직 관리자 페이지, 결제, 알림, 카카오 공유 구현하지 않는다.
+- ANTHROPIC_API_KEY는 서버 Route Handler에서만 사용하고 클라이언트에 노출하지 않는다.
+
+디자인 관련 주의:
+- 이번 작업은 디자인 변경/반영 단계가 아니다.
+- 디자인이나 벤치마킹 사이트 반영이 필요한 작업이 다시 오면, 반드시 작업 시작 전에 아래처럼 큰 제목으로 먼저 알려줘.
+
+# 🚨 디자인 변경/벤치마킹 반영 단계입니다
+
+서비스 표현 원칙:
+- 위험도 점수는 실제 사고 확률이 아니라 “운전 위험 지수”다.
+- “사고 확률”, “예측 확률”, “probability” 표현은 사용하지 않는다.
+- AFC 혼잡도는 실시간이 아니라 “과거 패턴 기반 예측형 혼잡도”로 표현한다.
+- API 실패 시 sampleAnalysis, sampleRoute, sampleWeather, generateTemplateReport 등 fallback으로 화면이 깨지지 않게 한다.
+- “무장애”보다 “이동권 보장”, “이동 편의 동선” 표현을 우선 사용한다.
+- 면허 반납은 강요가 아니라 가족과 함께 논의할 수 있는 의사결정 보조 관점으로 표현한다.
+- Claude가 생성하는 문장에도 위 표현 원칙이 반드시 적용되어야 한다.
+
+작업 목표:
+- Claude API를 서버 측에서 호출하는 리포트 생성 구조를 만든다.
+- AnalysisResult 또는 핵심 분석 데이터를 기반으로 가족 공유용 자연어 리포트를 생성한다.
+- Claude 응답을 앱 내부 ReportContent 타입으로 안전하게 정규화한다.
+- /api/report Route Handler에서 Claude 리포트 생성을 시도하고, 실패 시 generateTemplateReport fallback을 반환한다.
+- /api/analyze에서 가능한 경우 Claude 리포트를 반영하고, 실패 시 템플릿 리포트를 유지한다.
+- Claude 응답에 금지 표현이 포함되면 템플릿 fallback 또는 안전한 문구 보정 처리를 적용한다.
+- API key 누락, 네트워크 실패, 응답 오류, 안전하지 않은 문구 생성 상황에서도 앱이 깨지지 않게 한다.
+
+설치가 필요한 패키지:
+- @anthropic-ai/sdk
+
+권장 설치 명령어:
+npm install @anthropic-ai/sdk
+
+생성/수정할 파일:
+1. lib/report/generateClaudeReport.ts
+2. lib/report/normalizeClaudeReport.ts
+3. lib/report/reportSafety.ts
+4. lib/report/index.ts
+5. app/api/report/route.ts
+6. app/api/analyze/route.ts 필요 시 최소 수정
+7. types/index.ts 필요 시 최소 보강
+8. tests/report/generateClaudeReport-fallback.test.ts
+9. tests/report/reportSafety.test.ts
+10. README.md
+
+구현 지침:
+
+1. 환경변수
+- .env.local.example에 ANTHROPIC_API_KEY가 이미 있는지 확인한다.
+- 없으면 추가한다.
+
+ANTHROPIC_API_KEY=
+
+주의:
+- NEXT_PUBLIC_ 접두사를 붙이지 않는다.
+- 클라이언트 컴포넌트에서 사용하지 않는다.
+- 서버 Route Handler 또는 서버 유틸에서만 읽는다.
+- 응답 JSON이나 console.log에 key를 노출하지 않는다.
+
+2. lib/report/reportSafety.ts
+Claude 응답과 템플릿 리포트에 공통 적용할 안전 검사 유틸을 만든다.
+
+권장 export:
+export const FORBIDDEN_REPORT_TERMS = [
+  "사고 확률",
+  "예측 확률",
+  "probability",
+  "accident probability",
+  "prediction probability",
+  "실시간 혼잡도",
+  "realtime congestion",
+  "live congestion",
+  "운전 금지",
+  "반드시 반납"
+];
+
+export function containsForbiddenReportTerms(text: string): boolean
+export function sanitizeReportText(text: string): string
+export function validateReportContent(report: ReportContent): { ok: true } | { ok: false; reason: string }
+
+처리 원칙:
+- 금지 표현이 포함되면 ok false로 판단한다.
+- 간단히 치환 가능한 표현은 sanitizeReportText에서 보정해도 된다.
+- 단, 위험한 문구가 많으면 Claude 결과를 버리고 generateTemplateReport fallback을 사용한다.
+- “운전 위험 지수”, “의사결정 보조”, “과거 패턴 기반 예측형 혼잡도” 표현은 유지한다.
+
+3. lib/report/normalizeClaudeReport.ts
+Claude 응답 텍스트를 ReportContent로 변환한다.
+Claude에게 JSON 응답을 요청하더라도 실제 응답이 깨질 수 있으므로 안전하게 처리한다.
+
+권장 함수:
+export function normalizeClaudeReport(rawText: string): ReportContent | null
+
+처리 기준:
+- JSON 파싱이 되면 title, body, familyMessage를 추출한다.
+- JSON 파싱이 안 되면 raw text를 body로 사용하되 title/familyMessage를 안전하게 만든다.
+- 필수 필드가 비어 있으면 null을 반환한다.
+- 금지 표현이 포함되면 null을 반환하거나 sanitize 후 validate한다.
+- 너무 긴 familyMessage는 적당히 줄인다.
+- 면허 반납 강요 문구가 있으면 null 처리한다.
+
+4. lib/report/generateClaudeReport.ts
+Claude API 호출 함수와 fallback 구조를 만든다.
+
+권장 타입:
+export type ClaudeReportInput = {
+  analysis: AnalysisResult;
+};
+
+export type ClaudeReportResult =
+  | { ok: true; report: ReportContent; source: "CLAUDE" }
+  | { ok: false; report: ReportContent; source: "TEMPLATE"; reason: string };
+
+권장 함수:
+export async function generateClaudeReport(input: ClaudeReportInput): Promise<ClaudeReportResult>
+
+처리 흐름:
+1. ANTHROPIC_API_KEY 확인
+2. 키가 없으면 generateTemplateReport fallback 반환
+3. AnalysisResult에서 필요한 정보만 추출
+4. Claude에 보낼 prompt 구성
+5. timeout 또는 AbortController 적용
+6. Claude 응답 수신
+7. normalizeClaudeReport 적용
+8. validateReportContent 적용
+9. 성공 시 source "CLAUDE"
+10. 실패 시 generateTemplateReport fallback
+
+Claude 프롬프트 원칙:
+- 한국어로 작성한다.
+- 결과는 가능하면 JSON으로 요청한다.
+- title, body, familyMessage를 포함하도록 요청한다.
+- 절대 사용하면 안 되는 표현을 명시한다.
+- 위험도는 “운전 위험 지수”로만 표현하게 한다.
+- 혼잡도는 “과거 패턴 기반 예측형 혼잡도”로만 표현하게 한다.
+- 면허 반납은 강요하지 않고 가족 논의 주제로만 표현하게 한다.
+- 공포감을 주는 문장보다 차분한 안내 문장을 사용하게 한다.
+
+Claude에 전달할 데이터:
+- 출발지/도착지
+- 출발 시간
+- 연령대
+- drivingRisk.score, level, factors
+- transit.durationMin, transferCount, steps 요약
+- congestion level, description
+- weather condition, riskScore, description
+- dataSources
+- fallbackFlags
+
+주의:
+- 개인정보나 민감정보는 전달하지 않는다.
+- API key를 prompt에 포함하지 않는다.
+- Claude 응답을 그대로 신뢰하지 말고 안전 검사 후 사용한다.
+- 실패를 throw로 전파하지 않고 fallback으로 반환한다.
+
+5. lib/report/index.ts
+기존 generateTemplateReport export를 유지하고, 새 함수를 추가한다.
+
+예시:
+export { generateTemplateReport } from "./generateTemplateReport";
+export { generateClaudeReport } from "./generateClaudeReport";
+export { normalizeClaudeReport } from "./normalizeClaudeReport";
+export { containsForbiddenReportTerms, sanitizeReportText, validateReportContent } from "./reportSafety";
+
+6. app/api/report/route.ts
+- 기존 템플릿 리포트 route를 Claude 연동 route로 확장한다.
+- POST body로 AnalysisResult 또는 관련 데이터를 받는다.
+- Claude 생성 성공 시 source "CLAUDE"로 반환한다.
+- 실패 시 generateTemplateReport fallback 결과를 source "TEMPLATE"로 반환한다.
+- 실패해도 200 fallback 응답을 우선한다.
+
+권장 응답 구조:
+{
+  "ok": true,
+  "mode": "CLAUDE_OR_TEMPLATE",
+  "data": ReportContent,
+  "meta": {
+    "source": "CLAUDE",
+    "fallback": false
+  }
+}
+
+fallback 응답 예시:
+{
+  "ok": true,
+  "mode": "CLAUDE_OR_TEMPLATE",
+  "data": ReportContent,
+  "meta": {
+    "source": "TEMPLATE",
+    "fallback": true,
+    "reason": "Anthropic API key is missing"
+  }
+}
+
+주의:
+- ANTHROPIC_API_KEY를 응답에 포함하지 않는다.
+- Claude 실패 시 500보다 200 fallback을 우선한다.
+- 클라이언트에서 Claude API를 직접 호출하지 않는다.
+
+7. app/api/analyze/route.ts
+- 기존 Mock 분석, ODsay, Weather, Supabase 저장 흐름을 크게 바꾸지 않는다.
+- AnalysisResult 생성 후 generateClaudeReport를 호출해 report를 반영한다.
+- Claude 실패 시 generateTemplateReport fallback을 유지한다.
+- fallbackFlags.report를 source에 따라 업데이트한다.
+- report generatedBy 또는 source 필드가 있다면 "CLAUDE" 또는 "TEMPLATE"로 반영한다.
+- Supabase 저장은 최종 report가 반영된 AnalysisResult를 저장하도록 한다.
+- Kakao Local, Kakao Map은 아직 호출하지 않는다.
+
+8. types/index.ts
+필요하다면 다음 타입을 최소 보강한다.
+- ReportContent
+- ReportGeneratedBy
+- ReportSource
+- ClaudeReportResult
+- TemplateReportResult
+
+예시:
+export type ReportGeneratedBy = "TEMPLATE" | "CLAUDE";
+
+주의:
+- 기존 타입과 중복 선언하지 않는다.
+- sampleAnalysis 타입 오류가 발생하지 않도록 optional 필드 중심으로 보강한다.
+
+9. 테스트
+실제 Claude API를 호출하는 테스트는 작성하지 않는다.
+환경변수와 외부 API에 의존하지 않는 fallback 및 안전 검사 테스트를 작성한다.
+
+tests/report/reportSafety.test.ts 필수 테스트:
+- 금지 표현이 포함된 문자열을 감지한다.
+- 안전한 리포트 문구는 통과한다.
+- 면허 반납 강요 문구를 감지한다.
+- 혼잡도 표현이 “과거 패턴 기반 예측형 혼잡도”일 때는 통과한다.
+- “운전 위험 지수” 표현은 통과한다.
+
+tests/report/generateClaudeReport-fallback.test.ts 필수 테스트:
+- ANTHROPIC_API_KEY가 없을 때 generateTemplateReport fallback을 반환한다.
+- fallback report에 title, body, familyMessage가 존재한다.
+- fallback report에 “운전 위험 지수” 표현이 포함된다.
+- 반환 문자열 전체에 금지 표현이 포함되지 않는다.
+- API key가 응답 문자열에 포함되지 않는다.
+- 입력값이 부족해도 throw하지 않는다.
+
+금지 표현:
+- 사고 확률
+- 예측 확률
+- probability
+- 실시간 혼잡도
+- realtime congestion
+- live congestion
+- 운전 금지
+- 반드시 반납
+
+테스트명에도 금지 표현을 쓰지 않는다.
+
+10. README.md 업데이트
+다음을 추가한다.
+- 작업 14 완료 상태
+- Claude API 연동 구조가 추가되었다는 설명
+- ANTHROPIC_API_KEY 설정 방법
+- @anthropic-ai/sdk 설치 명령어
+- /api/report POST 사용 예시
+- Claude 실패 시 generateTemplateReport fallback이 동작한다는 설명
+- /api/analyze에서 Claude 리포트를 반영할 수 있다는 설명
+- Claude 응답에도 표현 원칙 안전 검사를 적용한다는 설명
+- 아직 Kakao Local 좌표 검색, Kakao Map 연동은 없다는 설명
+- 다음 작업은 사용자가 지정할 예정이라고 명시
+
+README curl 예시:
+curl -X POST http://localhost:3000/api/report \
+  -H "Content-Type: application/json" \
+  -d '{
+    "analysis": {
+      "id": "sample-analysis-daejeon-001"
+    }
+  }'
+
+주의사항:
+- Kakao Local API 호출하지 마.
+- Kakao Map SDK 연동하지 마.
+- 회원가입/auth 구현하지 마.
+- 관리자 페이지 구현하지 마.
+- 결제/알림/카카오 공유 구현하지 마.
+- 클라이언트에서 ANTHROPIC_API_KEY 사용하지 마.
+- ANTHROPIC_API_KEY를 응답이나 로그에 노출하지 마.
+- UI 디자인을 크게 변경하지 마.
+- Claude 응답을 안전 검사 없이 그대로 사용하지 마.
+- 위험도를 실제 사고 가능성처럼 표현하지 마.
+- “사고 확률”, “예측 확률”, “probability” 표현을 쓰지 마.
+- 혼잡도는 계속 “과거 패턴 기반 예측형 혼잡도”로 표현해줘.
+- 면허 반납을 강요하는 문장을 쓰지 마.
+- Claude 실패로 화면이 깨지지 않게 generateTemplateReport fallback을 유지해줘.
+- 기존 ODsay, Weather, Supabase 저장/조회, Mock API 흐름을 깨지 않게 해줘.
+
+완료 후 체크포인트:
+- npm install @anthropic-ai/sdk 성공
+- npm run dev 성공
+- npm run test 성공
+- npm run lint 성공 또는 타입 오류 없음
+- lib/report/generateClaudeReport.ts 확인 가능
+- lib/report/normalizeClaudeReport.ts 확인 가능
+- lib/report/reportSafety.ts 확인 가능
+- app/api/report/route.ts에서 POST 200 JSON 응답 확인
+- ANTHROPIC_API_KEY가 없어도 /api/report가 200 template fallback 응답 반환
+- ANTHROPIC_API_KEY가 있어도 실패 시 template fallback 유지
+- /api/analyze 기존 흐름이 깨지지 않음
+- ODsay 연동 흐름이 깨지지 않음
+- Weather 연동 흐름이 깨지지 않음
+- Supabase 저장/조회 흐름이 깨지지 않음
+- 테스트에서 실제 Claude API 호출 없음
+- 코드 전체에서 ANTHROPIC_API_KEY가 클라이언트에 노출되지 않음
+- 코드 전체에서 “probability”, “사고 확률”, “예측 확률” 표현이 없는지 확인
+- 리포트 문구가 면허 반납을 강요하지 않는지 확인

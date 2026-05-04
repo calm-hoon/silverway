@@ -225,9 +225,137 @@ curl -X POST http://localhost:3000/api/analyze \
   }'
 ```
 
-> 다음 작업: **작업 8.5. 디자인 시스템 정의**
->
-> ⚠️ 작업 8.5부터 디자인/벤치마킹 반영이 시작될 수 있습니다. 시작 전에 반드시 큰 제목으로 알려줍니다.
+### 작업 8.5
+
+- app/globals.css — --sw-* CSS 토큰(색상·타이포·spacing·shadow·radius·애니메이션 timing) 전면 정의
+- app/layout.tsx — Pretendard Variable 폰트, lang="ko", 시니어 친화 기본 18px 베이스 적용
+- components/ui/Icon.tsx — Lucide 경로 기반 SVG 인라인 아이콘 (외부 라이브러리 없음)
+- components/ui/Button.tsx — primary/secondary/ghost/kakao 변형, 최소 52px 터치 영역, press 애니메이션
+- components/ui/Chip.tsx — 위험도/상태용 tone 기반 칩 (danger/warning/safe/primary/accent/neutral)
+- components/ui/RiskScore.tsx — 운전 위험 지수 숫자 표시 (lg/md 크기, tone 색상)
+- components/ui/Card.tsx — sw-card / sw-card-hero 기반 카드 래퍼
+- components/ui/Badge.tsx — default/success/warning/danger/muted 변형 뱃지
+- components/ui/Section.tsx — 페이지 섹션 래퍼 (title, description, children)
+- components/ui/StatusPill.tsx — 상태 정보 소형 표시 (과거 패턴 기반 예측형 혼잡도, Mock API 등)
+- components/ui/index.ts — 모든 UI 컴포넌트 re-export
+- components/map/SWMap.tsx — 정적 SVG 지도 placeholder (Kakao Maps 연동 전 시각용)
+- components/RouteCard.tsx — 운전/대중교통 경로 비교 카드
+- components/RouteCompare.tsx — 추천 배너 + 지도 + 두 경로 카드 조합
+- components/AIReport.tsx — 가족 메시지 카드 + 카카오톡 공유 버튼
+- components/home/HeroSection.tsx — 랜딩 페이지 Hero (서비스 소개 + CTA)
+- components/home/FeatureCard.tsx — 핵심 기능 소개 카드
+- app/page.tsx — HeroSection + FeatureCard 기반 랜딩 페이지
+- app/analyze/page.tsx — 2단계 마법사 (목적지 입력 → 출발 시간 선택, 클라이언트 컴포넌트)
+- app/result/test/page.tsx — RouteCompare + AIReport 조합 테스트 결과 페이지
+- app/result/[id]/page.tsx — 동적 결과 페이지 (Supabase 조회는 이후 작업에서)
+
+벤치마킹 반영: 작업 8.5부터 시작됨. 이후 작업에서 벤치마킹 사이트·이미지 제공 시 우선 반영.
+
+현재 Mock/미구현 상태:
+- 장소검색, 최근 다녀온 곳, 거리/경로 계산은 Mock UI. 실제 동작은 Kakao Local, ODsay 연동 단계에서 처리.
+- Kakao, ODsay, Weather, Claude, Supabase query 실제 API 연동 없음
+- 회원가입/auth, 관리자 페이지, 결제, 알림, 카카오 공유 없음
+
+### 작업 9
+
+- lib/fallback/samplePlaces.ts — 시연용 대전광역시 주요 장소 6곳 mock 데이터 (대전역, 정부청사역, 충남대병원 등)
+- components/analyze/PlaceInput.tsx — 출발지/도착지 텍스트 입력 (입력 시 포커스 링, 지우기 버튼)
+- components/analyze/RecentPlaceList.tsx — 추천 장소 목록 (출발지/도착지 선택 버튼, mock 상태)
+- components/analyze/DepartureTimeSelector.tsx — 출발 시간 슬롯 선택 (오늘 오전/오후/저녁/직접 입력)
+- components/analyze/AgeGroupSelector.tsx — 연령대 선택 (60대/70대/80대 이상, 위험 지수 보정용)
+- components/analyze/AnalyzeNotice.tsx — 분석 안내 카드 (면책 문구, 과거 패턴 기반 예측형 혼잡도 표시)
+- components/analyze/AnalyzeForm.tsx — 폼 상태 관리 + POST /api/analyze 호출 + 결과 페이지 이동
+- components/analyze/index.ts — 모든 분석 컴포넌트 re-export
+- app/analyze/page.tsx — 입력 화면 (서버 컴포넌트 헤더 + AnalyzeForm 클라이언트 컴포넌트)
+
+현재 Mock/미구현 상태:
+- 장소 검색: mock 목록 선택 또는 텍스트 직접 입력. 실제 좌표 변환·검색은 이후 Kakao Local 연동(작업 15)에서 처리.
+- 경로 계산: mock. 실제 대중교통 경로는 ODsay 연동(작업 12)에서 처리.
+- API 호출: POST /api/analyze Mock API만 사용. 실패 시 예시 결과 페이지로 안내.
+- Supabase query, Kakao, ODsay, Weather, Claude API 미연동.
+
+### 작업 10
+
+- components/result/ResultSummary.tsx — 출발지·도착지·시간·연령대·요약 한 줄 카드
+- components/result/DrivingRiskCard.tsx — 운전 위험 지수 점수(0~100) + 레벨 바 + 면책 안내
+- components/result/RiskFactorList.tsx — 지역 사고 패턴·시간대·기상·연령대·이동거리 요인별 기여도 바
+- components/result/TransitAlternativeCard.tsx — 대중교통 단계별 타임라인 (도보→지하철→도보)
+- components/result/CongestionCard.tsx — "과거 패턴 기반 예측형 혼잡도" 레벨 바 + 메타 정보
+- components/result/WeatherSummaryCard.tsx — 기상 조건·온도·바람·위험 메모
+- components/result/FamilyReportCard.tsx — 가족 공유 문구 + 클립보드 복사 버튼 ("use client")
+- components/result/DataSourceCard.tsx — 활용 공공데이터 목록 + Mock/Fallback 상태 표시
+- components/result/ResultActions.tsx — "다시 분석하기" → /analyze, "홈으로" → /
+- components/result/index.ts — 모든 결과 컴포넌트 re-export
+- components/map/MapPlaceholder.tsx — "Kakao Map 연동 예정" placeholder
+- app/result/test/page.tsx — sampleAnalysis 기반 결과 화면 (서버 컴포넌트, 10개 카드 순차 배치)
+
+현재 Mock/미구현 상태:
+- 결과 화면은 sampleAnalysis/Mock API 기반이며, 실제 공공데이터·Claude 리포트 미연동
+- 지도 연동: Kakao Map 연동 이후 단계에서 처리
+- 실제 혼잡도: ODsay/AFC 실시간 연동 이후 단계에서 처리
+- 날씨: 기상청 단기예보 연동 이후 단계에서 처리
+- 가족 공유: 카카오 공유 대신 리포트 문구 클립보드 복사 버튼으로 처리 (카카오 공유는 이후 작업)
+
+### 작업 11
+
+- lib/fallback/createMockResultById.ts — id를 받아 sampleAnalysis 기반 AnalysisResult를 반환하는 순수 함수 (빈/이상한 id도 throw 없이 처리)
+- components/result/ResultFallbackNotice.tsx — Mock/fallback 상태를 부드럽게 알려주는 안내 카드
+- components/result/ResultPageView.tsx — 결과 카드 전체를 조합하는 공통 뷰 컴포넌트 (AnalysisResult를 props로 받음)
+- app/result/test/page.tsx — ResultPageView 사용으로 단순화 (sampleAnalysis 직접 전달)
+- app/result/[id]/page.tsx — createMockResultById로 id 반영 + ResultFallbackNotice + ResultPageView
+- app/api/result/[id]/route.ts — createMockResultById 사용으로 리팩터링, meta.requestedId 유지
+- tests/result/result-page-data.test.ts — createMockResultById 10개 테스트 (금지 표현, fallback, 강요 문장 검증)
+
+공유 구조: /result/test와 /result/[id]가 모두 ResultPageView를 재사용하며 UI 동일.
+
+현재 Mock/미구현 상태:
+- /result/[id]는 id가 없거나 이상해도 sampleAnalysis fallback으로 200 화면을 표시 (notFound() 미사용)
+- 실제 DB 저장 결과가 있는 것처럼 과장하지 않으며 ResultFallbackNotice로 상태를 명시
+
+### 작업 11.5
+
+- lib/supabase/analysisLogs.ts — `saveAnalysisLog` / `getAnalysisLogById` 서버 전용 유틸 (서비스 role key 사용, 클라이언트 import 금지)
+- app/api/analyze/route.ts — Mock 분석 결과 생성 후 `saveAnalysisLog`로 Supabase 저장 시도. 저장 성공 시 DB uuid를 `resultId`로 반환, 실패 시 Mock id를 fallback으로 반환.
+- app/api/result/[id]/route.ts — `getAnalysisLogById`로 Supabase 조회 시도. 실패 시 `sampleAnalysis` fallback 반환. 404 대신 항상 200 응답.
+- components/analyze/AnalyzeForm.tsx — 응답의 `resultId`로 `/result/[resultId]` 이동. `resultId` 없으면 `/result/test` fallback.
+- app/result/[id]/page.tsx — 서버에서 `getAnalysisLogById` 직접 호출. Supabase 조회 성공 시 DB 결과 표시, 실패 시 fallback + ResultFallbackNotice.
+- types/index.ts — `AnalysisLogRow` 전체 컬럼 보강 (origin/destination 필드), `AnalysisStorageSource`, `ResultLookupMeta` 추가, `Database` 타입에 `analysis_logs` 추가.
+- tests/supabase/analysisLogs.test.ts — 환경변수/DB 없이 실행 가능한 단위 테스트 (fallback 동작, 금지 표현, throw 없음 검증)
+
+구조:
+- 비회원 시연용 결과 저장/조회 (auth 없음)
+- Supabase 환경변수가 없거나 DB 연결 실패 시 `sampleAnalysis` fallback 자동 적용 — 화면이 깨지지 않음
+- service role key는 서버 파일에서만 사용, 클라이언트 번들에 포함되지 않음
+
+```bash
+# 테스트 실행
+npm run test
+
+# 분석 → 저장 → 결과 조회 흐름 확인 (dev 서버 실행 후)
+curl -X POST http://localhost:3000/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "origin": {
+      "name": "대전광역시청",
+      "address": "대전 서구 둔산로 100",
+      "lat": 36.3504,
+      "lng": 127.3845
+    },
+    "destination": {
+      "name": "충남대학교병원",
+      "address": "대전 중구 문화로 282",
+      "lat": 36.3166,
+      "lng": 127.4156
+    },
+    "departureTime": "2026-05-04T09:00:00+09:00",
+    "ageGroup": "70s"
+  }'
+
+# 결과 조회 (id는 위 응답의 resultId 값 사용)
+curl http://localhost:3000/api/result/test
+```
+
+> 다음 작업: 사용자가 지정할 예정
 
 #### Supabase 환경변수 설정
 
