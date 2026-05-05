@@ -93,7 +93,7 @@ export default function AnalyzePage() {
             운전 위험 지수와 대중교통 대안을 함께 확인할 수 있어요.
           </p>
           <div style={{ marginTop: 10 }}>
-            <StatusPill label="현재 Mock 분석 단계" tone="muted" />
+            <StatusPill label="공공데이터 기반 분석" tone="muted" />
           </div>
         </div>
 

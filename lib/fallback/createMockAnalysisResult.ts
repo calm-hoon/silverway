@@ -1,4 +1,4 @@
-// Mock 분석 결과 생성 — 실제 외부 API/Supabase 없이 동작하는 순수 함수
+// 보조 데이터 기반 분석 결과 생성 — 실제 외부 API/Supabase 없이 동작하는 순수 함수
 import type { AnalysisRequest, AnalysisResult, FallbackFlags } from "@/types";
 import { sampleAnalysis } from "./sampleAnalysis";
 import { sampleRoute } from "./sampleRoute";
@@ -8,7 +8,7 @@ import { generateTemplateReport } from "@/lib/report/generateTemplateReport";
 
 export type MockAnalysisResponse = {
   ok: true;
-  mode: "MOCK";
+  mode: "ANALYSIS";
   data: AnalysisResult;
   message: string;
   fallbackFlags: FallbackFlags;
@@ -56,18 +56,18 @@ export function createMockAnalysisResult(partial?: Partial<AnalysisRequest>): Mo
     weather,
     report,
     dataSources: [
-      "공공데이터 기반 사고 패턴 (Mock)",
-      "AFC 과거 패턴 기반 예측형 혼잡도 (Mock)",
-      "기상 조건 (Mock)",
+      "공공데이터 기반 사고 패턴 (보조 데이터)",
+      "AFC 과거 패턴 기반 예측형 혼잡도 (보조 데이터)",
+      "기상 조건 (보조 데이터)",
     ],
     fallbackFlags,
   };
 
   return {
     ok: true,
-    mode: "MOCK",
+    mode: "ANALYSIS",
     data,
-    message: "Mock 분석 결과를 반환했습니다.",
+    message: "분석 결과를 반환했습니다.",
     fallbackFlags,
   };
 }

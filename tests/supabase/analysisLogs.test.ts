@@ -29,7 +29,6 @@ function collectFallbackText(result: Awaited<ReturnType<typeof getAnalysisLogByI
 
 describe("saveAnalysisLog", () => {
   it("환경변수 없이 호출해도 throw하지 않는다", async () => {
-    // 테스트 환경에서는 Supabase 환경변수가 없으므로 fallback 반환
     await expect(saveAnalysisLog(sampleAnalysis)).resolves.not.toThrow();
   });
 
@@ -43,6 +42,22 @@ describe("saveAnalysisLog", () => {
     if (!result.ok) {
       expect(result.fallback.id).toBe(sampleAnalysis.id);
     }
+  });
+
+  it("ok: false일 때 reason이 SAVE_FAILED다", async () => {
+    const result = await saveAnalysisLog(sampleAnalysis);
+    if (!result.ok) {
+      expect(result.reason).toBe("SAVE_FAILED");
+    }
+  });
+
+  it("ok: false 응답 문자열에 service role key가 포함되지 않는다", async () => {
+    const result = await saveAnalysisLog(sampleAnalysis);
+    const text = JSON.stringify(result);
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (key) expect(text).not.toContain(key);
+    expect(text).not.toContain("service_role");
+    expect(text).not.toContain("SERVICE_ROLE");
   });
 });
 
@@ -60,6 +75,7 @@ describe("getAnalysisLogById", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.source).toBe("FALLBACK");
+      expect(result.reason).toBe("INVALID_ID");
     }
   });
 
@@ -95,5 +111,20 @@ describe("getAnalysisLogById", () => {
     await expect(getAnalysisLogById("!@#$%^&*()")).resolves.not.toThrow();
     await expect(getAnalysisLogById("a".repeat(500))).resolves.not.toThrow();
     await expect(getAnalysisLogById("   ")).resolves.not.toThrow();
+  });
+
+  it("조회 실패 시 reason이 RESULT_NOT_FOUND다", async () => {
+    const result = await getAnalysisLogById("nonexistent-id");
+    if (!result.ok) {
+      expect(result.reason).toBe("RESULT_NOT_FOUND");
+    }
+  });
+
+  it("조회 실패 응답 문자열에 service role key가 포함되지 않는다", async () => {
+    const result = await getAnalysisLogById("some-id");
+    const text = JSON.stringify(result);
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (key) expect(text).not.toContain(key);
+    expect(text).not.toContain("service_role");
   });
 });

@@ -77,7 +77,7 @@ export async function searchPlace(input: KakaoPlaceSearchRequest): Promise<Kakao
       return fallbackFromSample(input.query, "검색 결과가 없습니다.");
     }
 
-    return { ok: true, places, source: "KAKAO" };
+    return { ok: true, places, source: "KAKAO_LOCAL" };
   } catch (err: unknown) {
     const reason =
       err instanceof Error

@@ -67,9 +67,9 @@ describe("normalizeKakaoPlaces", () => {
     expect(() => normalizeKakaoPlaces({})).not.toThrow();
   });
 
-  it("source가 KAKAO로 설정된다", () => {
+  it("source가 KAKAO_LOCAL로 설정된다", () => {
     const result = normalizeKakaoPlaces(SAMPLE_RAW);
-    expect(result[0].source).toBe("KAKAO");
+    expect(result[0].source).toBe("KAKAO_LOCAL");
   });
 
   it("중복 장소가 제거된다", () => {

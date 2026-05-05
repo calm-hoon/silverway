@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     meta: {
       source: result.source,
       fallback: !result.ok,
-      ...(!result.ok && { reason: result.reason }),
+      reason: result.ok ? null : result.reason,
     },
   });
 }

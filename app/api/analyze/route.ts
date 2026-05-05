@@ -82,12 +82,12 @@ export async function POST(request: Request) {
     if (saveResult.ok) {
       return Response.json({
         ok: true,
-        mode: "MOCK_WITH_STORAGE",
+        mode: "ANALYSIS_WITH_STORAGE",
         data: saveResult.result,
         resultId: saveResult.id,
-        message: "Mock 분석 결과를 반환했습니다.",
+        message: "분석 결과를 반환했습니다.",
+        persistence: { saved: true },
         meta: {
-          stored: true,
           storageSource: "SUPABASE",
           routeSource: transitResult.source,
           weatherSource: weatherResult.source,
@@ -99,28 +99,28 @@ export async function POST(request: Request) {
 
     return Response.json({
       ok: true,
-      mode: "MOCK_WITH_STORAGE_FALLBACK",
+      mode: "ANALYSIS_FALLBACK",
       data: analysisData,
       resultId: analysisData.id,
-      message: "저장 연결이 없어 Mock 결과를 반환했습니다.",
+      message: "저장 연결이 없어 분석 결과를 반환했습니다.",
+      persistence: { saved: false, reason: "SAVE_FAILED" },
       meta: {
-        stored: false,
         storageSource: "FALLBACK",
         routeSource: transitResult.source,
         weatherSource: weatherResult.source,
         reportSource: reportResult.source,
-        reason: saveResult.reason,
       },
       fallbackFlags: analysisData.fallbackFlags,
     });
   } catch {
     return Response.json({
       ok: true,
-      mode: "MOCK_WITH_STORAGE_FALLBACK",
+      mode: "ANALYSIS_FALLBACK",
       data: sampleAnalysis,
-      resultId: "test",
+      resultId: sampleAnalysis.id,
       message: "오류가 발생해 기본 분석 결과를 반환했습니다.",
-      meta: { stored: false, storageSource: "FALLBACK", routeSource: "FALLBACK", weatherSource: "FALLBACK", reportSource: "FALLBACK" },
+      persistence: { saved: false, reason: "SAVE_FAILED" },
+      meta: { storageSource: "FALLBACK", routeSource: "FALLBACK", weatherSource: "FALLBACK", reportSource: "FALLBACK" },
       fallbackFlags: { analysis: true, route: true, weather: true, report: true },
     });
   }

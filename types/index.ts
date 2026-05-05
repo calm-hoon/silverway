@@ -52,7 +52,7 @@ export type ExternalSource =
 // 2. 장소 / 입력 타입
 // ──────────────────────────────────────────────
 
-export type PlaceSearchSource = "KAKAO" | "FALLBACK" | "SAMPLE";
+export type PlaceSearchSource = "KAKAO" | "KAKAO_LOCAL" | "FALLBACK" | "SAMPLE";
 
 export type Place = {
   name: string;
@@ -62,6 +62,18 @@ export type Place = {
   category?: string;
   phone?: string;
   source?: PlaceSearchSource;
+};
+
+export type RecentPlace = Place & {
+  id: string;
+  lastUsedAt: string;
+};
+
+export type RecentRoute = {
+  id: string;
+  origin: Place;
+  destination: Place;
+  lastUsedAt: string;
 };
 
 export type AnalysisRequest = {

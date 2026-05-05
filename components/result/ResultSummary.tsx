@@ -31,10 +31,10 @@ export function ResultSummary({ analysis }: ResultSummaryProps) {
           : "1px solid #BBF7D0",
       }}
     >
-      {/* Mock badge */}
+      {/* fallback badge */}
       {isFallback && (
         <div>
-          <Badge variant="muted">시연용 Mock 결과</Badge>
+          <Badge variant="muted">예시 결과</Badge>
         </div>
       )}
 

@@ -236,7 +236,7 @@ curl -X POST http://localhost:3000/api/analyze \
 - components/ui/Card.tsx — sw-card / sw-card-hero 기반 카드 래퍼
 - components/ui/Badge.tsx — default/success/warning/danger/muted 변형 뱃지
 - components/ui/Section.tsx — 페이지 섹션 래퍼 (title, description, children)
-- components/ui/StatusPill.tsx — 상태 정보 소형 표시 (과거 패턴 기반 예측형 혼잡도, Mock API 등)
+- components/ui/StatusPill.tsx — 상태 정보 소형 표시 (과거 패턴 기반 예측형 혼잡도, 보조 데이터 등)
 - components/ui/index.ts — 모든 UI 컴포넌트 re-export
 - components/map/SWMap.tsx — 정적 SVG 지도 placeholder (Kakao Maps 연동 전 시각용)
 - components/RouteCard.tsx — 운전/대중교통 경로 비교 카드
@@ -283,7 +283,7 @@ curl -X POST http://localhost:3000/api/analyze \
 - components/result/CongestionCard.tsx — "과거 패턴 기반 예측형 혼잡도" 레벨 바 + 메타 정보
 - components/result/WeatherSummaryCard.tsx — 기상 조건·온도·바람·위험 메모
 - components/result/FamilyReportCard.tsx — 가족 공유 문구 + 클립보드 복사 버튼 ("use client")
-- components/result/DataSourceCard.tsx — 활용 공공데이터 목록 + Mock/Fallback 상태 표시
+- components/result/DataSourceCard.tsx — 활용 공공데이터 목록 + 보조 데이터/대체 데이터 상태 표시
 - components/result/ResultActions.tsx — "다시 분석하기" → /analyze, "홈으로" → /
 - components/result/index.ts — 모든 결과 컴포넌트 re-export
 - components/map/MapPlaceholder.tsx — "Kakao Map 연동 예정" placeholder
@@ -299,7 +299,7 @@ curl -X POST http://localhost:3000/api/analyze \
 ### 작업 11
 
 - lib/fallback/createMockResultById.ts — id를 받아 sampleAnalysis 기반 AnalysisResult를 반환하는 순수 함수 (빈/이상한 id도 throw 없이 처리)
-- components/result/ResultFallbackNotice.tsx — Mock/fallback 상태를 부드럽게 알려주는 안내 카드
+- components/result/ResultFallbackNotice.tsx — 보조 데이터 사용 상태를 부드럽게 알려주는 안내 카드
 - components/result/ResultPageView.tsx — 결과 카드 전체를 조합하는 공통 뷰 컴포넌트 (AnalysisResult를 props로 받음)
 - app/result/test/page.tsx — ResultPageView 사용으로 단순화 (sampleAnalysis 직접 전달)
 - app/result/[id]/page.tsx — createMockResultById로 id 반영 + ResultFallbackNotice + ResultPageView

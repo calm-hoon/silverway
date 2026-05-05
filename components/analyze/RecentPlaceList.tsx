@@ -1,15 +1,17 @@
-// 최근 다녀온 곳은 시연용 mock 목록입니다. 실제 저장/조회가 아닙니다.
+// 최근 다녀온 곳 목록. localStorage 연동은 추후 작업에서 진행.
 import { type Place } from "@/types";
 import { Icon } from "@/components/ui/Icon";
 
 type RecentPlaceListProps = {
   places: Place[];
+  title?: string;
   onSelectAsOrigin: (place: Place) => void;
   onSelectAsDestination: (place: Place) => void;
 };
 
 export function RecentPlaceList({
   places,
+  title = "추천 장소",
   onSelectAsOrigin,
   onSelectAsDestination,
 }: RecentPlaceListProps) {
@@ -24,7 +26,7 @@ export function RecentPlaceList({
           textTransform: "uppercase",
         }}
       >
-        추천 장소 (시연용)
+        {title}
       </div>
 
       {places.map((place) => (

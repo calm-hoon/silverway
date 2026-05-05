@@ -69,7 +69,7 @@ export default function TestResultPage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <StatusPill label="시연용 Mock 결과" tone="muted" />
+          <StatusPill label="예시 결과" tone="muted" />
           <span style={{ fontSize: 13, color: "var(--sw-ink-3)" }}>
             공공데이터 기반 운전 위험 지수와 대중교통 대안
           </span>

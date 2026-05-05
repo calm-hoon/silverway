@@ -35,7 +35,7 @@ export function DataSourceCard({ sources, fallbackFlags }: DataSourceCardProps) 
         >
           활용 공공데이터
         </div>
-        {hasFallback && <Badge variant="muted">일부 Mock 적용</Badge>}
+        {hasFallback && <Badge variant="muted">보조 데이터 사용</Badge>}
       </div>
 
       {/* sources list */}
@@ -71,8 +71,8 @@ export function DataSourceCard({ sources, fallbackFlags }: DataSourceCardProps) 
             borderRadius: "var(--sw-r-md)",
           }}
         >
-          현재 일부 데이터는 시연용 Mock 또는 Fallback으로 대체되어 있습니다.
-          실제 API 연동 후 공공데이터 기반 분석이 제공됩니다.
+          현재 일부 데이터는 예시 또는 보조 데이터로 대체되어 있습니다.
+          외부 API 연동 시 공공데이터 기반 실시간 분석이 제공됩니다.
         </div>
       )}
     </div>

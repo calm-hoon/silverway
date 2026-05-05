@@ -10,7 +10,7 @@ describe("createMockAnalysisResult", () => {
       ageGroup: "70s",
     });
     expect(result.ok).toBe(true);
-    expect(result.mode).toBe("MOCK");
+    expect(result.mode).toBe("ANALYSIS");
     expect(result.data).toBeDefined();
   });
 

@@ -49,7 +49,7 @@ export function ResultFallbackNotice({
           fallbackFlags={fallbackFlags}
           message={
             isMock
-              ? "현재 결과는 시연용 예시 데이터를 기반으로 표시됩니다."
+              ? "현재 결과는 예시 데이터를 기반으로 표시됩니다."
               : undefined
           }
           compact

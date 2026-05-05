@@ -19,7 +19,7 @@ function documentToPlace(doc: KakaoPlaceDocument): Place | null {
     lng,
     ...(doc.category_name ? { category: doc.category_name } : {}),
     ...(doc.phone ? { phone: doc.phone } : {}),
-    source: "KAKAO",
+    source: "KAKAO_LOCAL",
   };
 }
 

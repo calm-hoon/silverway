@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { type Place, type AgeGroup } from "@/types";
 import { samplePlaces } from "@/lib/fallback/samplePlaces";
+import { getRecentPlaces, saveRecentPlace, saveRecentRoute } from "@/lib/storage";
 import { Button } from "@/components/ui/Button";
 import { PlaceInput } from "./PlaceInput";
 import { RecentPlaceList } from "./RecentPlaceList";
@@ -38,9 +39,14 @@ export function AnalyzeForm() {
   const [departureSlot, setDepartureSlot] = useState<DepartureSlot | "">("");
   const [customTime, setCustomTime] = useState("");
   const [ageGroup, setAgeGroup] = useState<AgeGroup | "">("");
+  const [recentPlaces, setRecentPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasFallback, setHasFallback] = useState(false);
+
+  useEffect(() => {
+    setRecentPlaces(getRecentPlaces());
+  }, []);
 
   const canSubmit =
     originPlace !== null &&
@@ -49,30 +55,44 @@ export function AnalyzeForm() {
     (departureSlot !== "custom" || customTime !== "") &&
     ageGroup !== "";
 
+  function persistPlace(place: Place) {
+    try {
+      setRecentPlaces(saveRecentPlace(place));
+    } catch {
+      // 저장 실패가 분석 흐름을 막지 않음
+    }
+  }
+
   // RecentPlaceList에서 선택: key를 바꿔 PlaceInput을 재마운트하고 초기값을 반영한다
   function selectOriginFromList(place: Place) {
     setOriginPlace(place);
     setOriginKey((k) => k + 1);
+    persistPlace(place);
   }
 
   function selectDestFromList(place: Place) {
     setDestPlace(place);
     setDestKey((k) => k + 1);
+    persistPlace(place);
   }
 
   // PlaceInput 내부 검색에서 선택: key는 변경하지 않는다
   function handleOriginSelect(place: Place) {
     setOriginPlace(place);
+    persistPlace(place);
   }
 
   function handleDestSelect(place: Place) {
     setDestPlace(place);
+    persistPlace(place);
   }
 
   async function handleSubmit() {
     if (!canSubmit || !originPlace || !destPlace) return;
     setLoading(true);
     setError(null);
+
+    try { saveRecentRoute({ origin: originPlace, destination: destPlace }); } catch { /* ignore */ }
 
     try {
       const res = await fetch("/api/analyze", {
@@ -153,9 +173,10 @@ export function AnalyzeForm() {
         )}
       </div>
 
-      {/* 추천 장소 */}
+      {/* 최근/추천 장소 */}
       <RecentPlaceList
-        places={samplePlaces}
+        places={recentPlaces.length > 0 ? recentPlaces : samplePlaces}
+        title={recentPlaces.length > 0 ? "최근 장소" : "추천 장소"}
         onSelectAsOrigin={selectOriginFromList}
         onSelectAsDestination={selectDestFromList}
       />

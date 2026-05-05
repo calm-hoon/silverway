@@ -24,6 +24,6 @@ export async function GET(_request: Request, { params }: ResultApiContext) {
     mode: "RESULT_LOOKUP_FALLBACK",
     data: result.fallback,
     message: "저장된 결과를 찾지 못해 예시 결과를 반환했습니다.",
-    meta: { requestedId: id, source: result.source, fallback: true },
+    meta: { requestedId: id, source: result.source, fallback: true, reason: result.reason ?? "RESULT_NOT_FOUND" },
   });
 }

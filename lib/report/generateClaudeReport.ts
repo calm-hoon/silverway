@@ -72,10 +72,12 @@ function fallback(analysis: AnalysisResult, reason: string): ClaudeReportResult 
 
 export async function generateClaudeReport(input: ClaudeReportInput): Promise<ClaudeReportResult> {
   const { analysis } = input;
+  const startMs = Date.now();
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return fallback(analysis, "ANTHROPIC_API_KEY가 설정되지 않았습니다.");
+    console.warn("[SilverWay] generateClaudeReport: ANTHROPIC_API_KEY_MISSING");
+    return fallback(analysis, "ANTHROPIC_API_KEY_MISSING");
   }
 
   try {
@@ -102,27 +104,37 @@ export async function generateClaudeReport(input: ClaudeReportInput): Promise<Cl
     }
 
     if (!rawText) {
-      return fallback(analysis, "Claude 응답이 비어 있습니다.");
+      console.error("[SilverWay] generateClaudeReport: CLAUDE_EMPTY_RESPONSE (%dms)", Date.now() - startMs);
+      return fallback(analysis, "CLAUDE_EMPTY_RESPONSE");
     }
 
     const normalized = normalizeClaudeReport(rawText);
     if (!normalized) {
-      return fallback(analysis, "Claude 응답 정규화에 실패했습니다.");
+      console.error("[SilverWay] generateClaudeReport: CLAUDE_PARSE_ERROR (%dms)", Date.now() - startMs);
+      return fallback(analysis, "CLAUDE_PARSE_ERROR");
     }
 
     const validation = validateReportContent(normalized);
     if (!validation.ok) {
-      return fallback(analysis, `Claude 응답 안전 검사 실패: ${validation.reason}`);
+      console.error("[SilverWay] generateClaudeReport: CLAUDE_SAFETY_FAILURE reason=%s (%dms)", validation.reason, Date.now() - startMs);
+      return fallback(analysis, "CLAUDE_SAFETY_FAILURE");
     }
 
+    console.info("[SilverWay] generateClaudeReport: ok source=CLAUDE (%dms)", Date.now() - startMs);
     return { ok: true, report: normalized, source: "CLAUDE" };
   } catch (err: unknown) {
-    const reason =
-      err instanceof Error
-        ? err.name === "AbortError"
-          ? "Claude API 타임아웃"
-          : err.message
-        : "Claude API 호출 오류";
+    let reason = "CLAUDE_FETCH_FAILED";
+    if (err instanceof Error) {
+      if (err.name === "AbortError") {
+        reason = "CLAUDE_TIMEOUT";
+      } else {
+        const status = (err as { status?: number }).status;
+        if (typeof status === "number") {
+          reason = `CLAUDE_HTTP_ERROR_STATUS_${status}`;
+        }
+      }
+    }
+    console.error("[SilverWay] generateClaudeReport: %s (%dms)", reason, Date.now() - startMs);
     return fallback(analysis, reason);
   }
 }

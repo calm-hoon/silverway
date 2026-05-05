@@ -55,7 +55,7 @@ function rowToAnalysisResult(row: AnalysisLogRow): AnalysisResult {
 export async function saveAnalysisLog(result: AnalysisResult): Promise<SaveAnalysisLogResult> {
   const client = createAdminClient();
   if (!client) {
-    return { ok: false, reason: "Supabase 환경변수 없음", fallback: result };
+    return { ok: false, reason: "SAVE_FAILED", fallback: result };
   }
 
   try {
@@ -84,12 +84,14 @@ export async function saveAnalysisLog(result: AnalysisResult): Promise<SaveAnaly
       .single();
 
     if (error || !data) {
-      return { ok: false, reason: error?.message ?? "insert 결과 없음", fallback: result };
+      console.error("[SilverWay] analysis_logs insert 실패:", error?.code, error?.hint);
+      return { ok: false, reason: "SAVE_FAILED", fallback: result };
     }
 
     return { ok: true, id: data.id, result: { ...result, id: data.id } };
   } catch (e) {
-    return { ok: false, reason: String(e), fallback: result };
+    console.error("[SilverWay] analysis_logs insert 예외:", e instanceof Error ? e.message : String(e));
+    return { ok: false, reason: "SAVE_FAILED", fallback: result };
   }
 }
 
@@ -97,12 +99,12 @@ export async function getAnalysisLogById(id: string): Promise<GetAnalysisLogResu
   const fallback = createMockResultById(id);
 
   if (!id?.trim()) {
-    return { ok: false, reason: "빈 id", fallback, source: "FALLBACK" };
+    return { ok: false, reason: "INVALID_ID", fallback, source: "FALLBACK" };
   }
 
   const client = createAdminClient();
   if (!client) {
-    return { ok: false, reason: "Supabase 환경변수 없음", fallback, source: "FALLBACK" };
+    return { ok: false, reason: "RESULT_NOT_FOUND", fallback, source: "FALLBACK" };
   }
 
   try {
@@ -113,11 +115,13 @@ export async function getAnalysisLogById(id: string): Promise<GetAnalysisLogResu
       .single();
 
     if (error || !data) {
-      return { ok: false, reason: error?.message ?? "결과 없음", fallback, source: "FALLBACK" };
+      console.error("[SilverWay] analysis_logs select 실패:", error?.code, error?.hint);
+      return { ok: false, reason: "RESULT_NOT_FOUND", fallback, source: "FALLBACK" };
     }
 
     return { ok: true, result: rowToAnalysisResult(data), source: "SUPABASE" };
   } catch (e) {
-    return { ok: false, reason: String(e), fallback, source: "FALLBACK" };
+    console.error("[SilverWay] analysis_logs select 예외:", e instanceof Error ? e.message : String(e));
+    return { ok: false, reason: "RESULT_NOT_FOUND", fallback, source: "FALLBACK" };
   }
 }

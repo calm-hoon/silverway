@@ -8,7 +8,7 @@ export type KakaoPlaceSearchRequest = {
 };
 
 export type KakaoPlaceSearchResult =
-  | { ok: true; places: Place[]; source: "KAKAO" }
+  | { ok: true; places: Place[]; source: "KAKAO_LOCAL" }
   | { ok: false; places: Place[]; source: "FALLBACK"; reason: string };
 
 export type KakaoPlaceDocument = {
