@@ -1,10 +1,22 @@
+import type { FallbackFlags } from "@/types";
+import { FallbackNotice } from "@/components/ui/FallbackNotice";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { hasAnyFallback } from "@/lib/fallback/fallbackFlags";
 
 type ResultFallbackNoticeProps = {
   requestedId?: string;
+  fallbackFlags?: FallbackFlags;
+  isMock?: boolean;
 };
 
-export function ResultFallbackNotice({ requestedId }: ResultFallbackNoticeProps) {
+export function ResultFallbackNotice({
+  requestedId,
+  fallbackFlags,
+  isMock = false,
+}: ResultFallbackNoticeProps) {
+  const showFallback = isMock || hasAnyFallback(fallbackFlags);
+  if (!showFallback && !requestedId) return null;
+
   return (
     <div
       style={{
@@ -18,7 +30,7 @@ export function ResultFallbackNotice({ requestedId }: ResultFallbackNoticeProps)
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <StatusPill label="Mock 결과" tone="muted" />
+        {isMock && <StatusPill label="예시 결과" tone="muted" />}
         {requestedId && (
           <span
             style={{
@@ -31,16 +43,28 @@ export function ResultFallbackNotice({ requestedId }: ResultFallbackNoticeProps)
           </span>
         )}
       </div>
+
+      {showFallback && (
+        <FallbackNotice
+          fallbackFlags={fallbackFlags}
+          message={
+            isMock
+              ? "현재 결과는 시연용 예시 데이터를 기반으로 표시됩니다."
+              : undefined
+          }
+          compact
+        />
+      )}
+
       <p
         style={{
           margin: 0,
-          fontSize: 13,
-          color: "var(--sw-ink-2)",
-          lineHeight: 1.6,
+          fontSize: 12,
+          color: "var(--sw-ink-3)",
+          lineHeight: 1.5,
         }}
       >
-        현재 결과는 시연용 Mock 데이터를 기반으로 표시됩니다.
-        실제 저장 결과 조회는 Supabase 연결 단계에서 제공될 예정입니다.
+        외부 API 연결 상태와 관계없이 결과 화면은 계속 확인할 수 있습니다.
       </p>
     </div>
   );

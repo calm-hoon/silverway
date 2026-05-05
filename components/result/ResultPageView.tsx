@@ -1,5 +1,5 @@
 import { type AnalysisResult } from "@/types";
-import { MapPlaceholder } from "@/components/map/MapPlaceholder";
+import { MapSection } from "@/components/map/MapSection";
 import { ResultSummary } from "./ResultSummary";
 import { DrivingRiskCard } from "./DrivingRiskCard";
 import { RiskFactorList } from "./RiskFactorList";
@@ -25,7 +25,7 @@ export function ResultPageView({ analysis }: ResultPageViewProps) {
         <RiskFactorList factors={analysis.drivingRisk.factors} />
       )}
 
-      <MapPlaceholder />
+      <MapSection analysis={analysis} />
 
       <TransitAlternativeCard transit={analysis.transit} />
 

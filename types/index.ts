@@ -32,17 +32,36 @@ export type FallbackFlags = {
   route?: boolean;
   weather?: boolean;
   report?: boolean;
+  place?: boolean;
+  map?: boolean;
+  storage?: boolean;
 };
+
+export type ExternalSource =
+  | "KAKAO"
+  | "KAKAO_MAP"
+  | "ODSAY"
+  | "KMA"
+  | "CLAUDE"
+  | "SUPABASE"
+  | "FALLBACK"
+  | "SAMPLE"
+  | "TEMPLATE";
 
 // ──────────────────────────────────────────────
 // 2. 장소 / 입력 타입
 // ──────────────────────────────────────────────
+
+export type PlaceSearchSource = "KAKAO" | "FALLBACK" | "SAMPLE";
 
 export type Place = {
   name: string;
   address: string;
   lat: number;
   lng: number;
+  category?: string;
+  phone?: string;
+  source?: PlaceSearchSource;
 };
 
 export type AnalysisRequest = {
@@ -143,6 +162,8 @@ export type WeatherCondition =
   | "FOG"
   | "UNKNOWN";
 
+export type WeatherSource = "KMA" | "FALLBACK";
+
 export type WeatherRisk = {
   condition: WeatherCondition;
   label: string;
@@ -151,6 +172,8 @@ export type WeatherRisk = {
   /** 날씨가 운전 위험 지수에 미치는 영향 설명 */
   riskNote: string;
   source: string;
+  /** 0~100 운전 위험 지수 참고 기상 가중치 (실제 사고 가능성이 아님) */
+  riskScore?: number;
 };
 
 // ──────────────────────────────────────────────
@@ -227,6 +250,8 @@ export type AnalysisLogRow = {
 export type AnalysisLogInsert = Omit<AnalysisLogRow, "id" | "created_at">;
 
 export type AnalysisStorageSource = "SUPABASE" | "FALLBACK";
+
+export type RouteSource = "ODSAY" | "FALLBACK";
 
 export type ResultLookupMeta = {
   requestedId: string;

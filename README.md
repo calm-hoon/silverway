@@ -355,6 +355,134 @@ curl -X POST http://localhost:3000/api/analyze \
 curl http://localhost:3000/api/result/test
 ```
 
+### 작업 12
+
+- lib/odsay/types.ts — `OdsayRouteRequest`, `OdsayRouteResult`, `OdsayRawResponse` 등 최소 타입 정의
+- lib/odsay/normalizeOdsayRoute.ts — ODsay 원본 응답 → `TransitSummary` 변환 순수 함수 (파싱 실패 시 null 반환, throw 없음)
+- lib/odsay/getTransitRoute.ts — 서버 전용 ODsay API 호출 함수. API key 누락/좌표 오류/HTTP 오류/경로 없음 모두 `sampleRoute` fallback 반환
+- lib/odsay/index.ts — ODsay 모듈 re-export
+- app/api/route/route.ts — GET: Mock 응답 유지, POST: ODsay 경로 조회 → 실패 시 fallback
+- app/api/analyze/route.ts — Mock 결과 생성 후 ODsay 경로 조회 병렬 적용. `fallbackFlags.route`를 실제 source에 따라 업데이트
+- types/index.ts — `RouteSource = "ODSAY" | "FALLBACK"` 추가
+- tests/odsay/normalizeOdsayRoute.test.ts — 정규화 함수 8개 테스트 (경로 없음, 잘못된 입력, 금지 표현 검증)
+- tests/odsay/getTransitRoute-fallback.test.ts — fallback 동작 8개 테스트 (API key 없음, NaN 좌표, 금지 표현, key 노출 검증)
+
+구조:
+- `ODSAY_API_KEY`는 서버 전용 환경변수 (NEXT_PUBLIC_ 접두사 없음, 클라이언트 노출 금지)
+- ODsay 실패 시 `sampleRoute` fallback이 자동 적용되어 화면이 깨지지 않음
+- 혼잡도는 ODsay가 아닌 AFC 기반 `sampleRoute.congestion`을 그대로 사용 (과거 패턴 기반 예측형)
+- 실제 Kakao Local 좌표 검색, Kakao Map, Weather, Claude 연동은 아직 없음
+
+```bash
+# .env.local에 추가
+ODSAY_API_KEY=<your-odsay-api-key>
+
+# 대중교통 경로 조회 (dev 서버 실행 후)
+curl -X POST http://localhost:3000/api/route \
+  -H "Content-Type: application/json" \
+  -d '{
+    "origin": {
+      "name": "대전광역시청",
+      "lat": 36.3504,
+      "lng": 127.3845
+    },
+    "destination": {
+      "name": "충남대학교병원",
+      "lat": 36.3166,
+      "lng": 127.4156
+    }
+  }'
+
+# 테스트 실행
+npm run test
+```
+
+### 작업 13
+
+- lib/weather/types.ts — `WeatherRiskRequest`, `WeatherRiskResult`, `KmaForecastItem`, `KmaForecastResponse` 최소 타입 정의
+- lib/weather/convertGrid.ts — 위경도 → 기상청 단기예보 격자 좌표(nx, ny) 변환 순수 함수 (Lambert Conformal Conic, 기상청 공식 계수 사용). 변환 실패 시 대전 기본 격자(nx=67, ny=100) 반환
+- lib/weather/normalizeWeatherForecast.ts — KMA 단기예보 원본 응답 → `WeatherRisk` 변환. TMP·PTY·SKY·WSD·POP 기반 condition, riskScore, riskNote 산정. 파싱 실패/경로 없음 시 null 반환
+- lib/weather/getWeatherRisk.ts — 서버 전용 기상청 API 호출. API key 누락/좌표 오류/HTTP 오류/예보 없음 모두 `sampleWeather` fallback 반환
+- lib/weather/index.ts — Weather 모듈 re-export
+- app/api/weather/route.ts — GET: 대전 기본 위치 기준, POST: body lat/lng 기준 날씨 조회 → 실패 시 fallback
+- app/api/analyze/route.ts — ODsay·Weather 조회를 병렬(Promise.all) 실행. 날씨 riskScore를 `calculateDrivingRisk`의 weatherRiskScore에 반영. `fallbackFlags.weather` 실제 source에 따라 업데이트
+- types/index.ts — `WeatherSource = "KMA" | "FALLBACK"`, `WeatherRisk.riskScore?: number` 추가
+- tests/weather/normalizeWeatherForecast.test.ts — 정규화 함수 10개 테스트 (맑음/비 변환, riskScore 범위, 금지 표현 검증)
+- tests/weather/getWeatherRisk-fallback.test.ts — fallback 동작 + 격자 변환 12개 테스트 (API key 없음, NaN 좌표, 대전 격자값 검증)
+
+구조:
+- `WEATHER_API_KEY`는 공공데이터포털 "기상청_단기예보 조회서비스" 일반 인증키(serviceKey)
+- 서버 전용 환경변수 (NEXT_PUBLIC_ 접두사 없음, 클라이언트 노출 금지)
+- 날씨 실패 시 `sampleWeather` fallback 자동 적용 — 화면이 깨지지 않음
+- riskScore는 운전 위험 지수 참고 기상 가중치이며 실제 사고 가능성이 아님
+- 아직 Kakao Local 좌표 검색, Kakao Map, Claude 연동은 없음
+
+```bash
+# .env.local에 추가
+WEATHER_API_KEY=<공공데이터포털 기상청 단기예보 조회서비스 serviceKey>
+
+# 대전 기본 위치 날씨 조회 (dev 서버 실행 후)
+curl http://localhost:3000/api/weather
+
+# 특정 좌표 날씨 조회
+curl -X POST http://localhost:3000/api/weather \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lat": 36.3504,
+    "lng": 127.3845
+  }'
+
+# 테스트 실행
+npm run test
+```
+
+### 작업 14
+
+- lib/report/reportSafety.ts — `FORBIDDEN_REPORT_TERMS` 목록, `containsForbiddenReportTerms()`, `sanitizeReportText()`, `validateReportContent()` 안전 검사 유틸
+- lib/report/normalizeClaudeReport.ts — Claude 응답 텍스트 → `ReportContent` 변환. JSON 파싱 실패 시 raw text 경로, 금지 표현·필수 필드 누락 시 null 반환
+- lib/report/generateClaudeReport.ts — 서버 전용 Claude API 호출. API key 누락·타임아웃(15s)·응답 오류·안전 검사 실패 시 `generateTemplateReport` fallback 반환
+- lib/report/index.ts — Claude 연동 함수 추가 re-export
+- app/api/report/route.ts — POST: `AnalysisResult` 기반 Claude 리포트 생성 시도 → 실패 시 template fallback. 항상 200 응답.
+- app/api/analyze/route.ts — `analysisData` 생성 후 `generateClaudeReport` 호출 → `report` 반영. `fallbackFlags.report` source에 따라 업데이트. Supabase 저장은 최종 report 반영 후 실행.
+- tests/report/reportSafety.test.ts — 금지 표현 감지·치환·필드 검증 테스트
+- tests/report/generateClaudeReport-fallback.test.ts — API key 없는 환경 fallback 동작 테스트 (실제 Claude 호출 없음)
+
+구조:
+- `ANTHROPIC_API_KEY`는 서버 전용 환경변수 (NEXT_PUBLIC_ 접두사 없음, 클라이언트·응답·로그 노출 금지)
+- Claude 실패 시 `generateTemplateReport` fallback 자동 적용 — 화면이 깨지지 않음
+- Claude 응답도 안전 검사(`validateReportContent`) 통과 후에만 사용
+- 아직 Kakao Local 좌표 검색, Kakao Map 연동은 없음
+
+```bash
+# .env.local에 추가
+ANTHROPIC_API_KEY=<your-anthropic-api-key>
+
+# @anthropic-ai/sdk 설치
+npm install @anthropic-ai/sdk
+
+# Claude 리포트 생성 (dev 서버 실행 후)
+curl -X POST http://localhost:3000/api/report \
+  -H "Content-Type: application/json" \
+  -d '{
+    "analysis": {
+      "id": "sample-analysis-daejeon-001"
+    }
+  }'
+
+# 테스트 실행
+npm run test
+```
+
+Claude 실패 시 응답 예시 (TEMPLATE fallback):
+```json
+{
+  "ok": true,
+  "mode": "CLAUDE_OR_TEMPLATE",
+  "data": { "title": "...", "familyMessage": "...", "generatedBy": "TEMPLATE" },
+  "meta": { "source": "TEMPLATE", "fallback": true, "reason": "ANTHROPIC_API_KEY가 설정되지 않았습니다." }
+}
+```
+
 > 다음 작업: 사용자가 지정할 예정
 
 #### Supabase 환경변수 설정
@@ -372,3 +500,219 @@ NEXT_PUBLIC_SUPABASE_URL=https://<project-id>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>   # 서버 전용, 클라이언트 노출 금지
 ```
+
+### 작업 15
+
+- lib/kakao/types.ts — `KakaoPlaceSearchRequest`, `KakaoPlaceSearchResult`, `KakaoPlaceDocument`, `KakaoLocalRawResponse` 최소 타입 정의
+- lib/kakao/normalizeKakaoPlace.ts — Kakao Local 원본 응답 → `Place[]` 변환 순수 함수. x→lng, y→lat 올바르게 매핑. 좌표 파싱 실패 항목 제외, 중복 제거.
+- lib/kakao/searchPlace.ts — 서버 전용 Kakao Local API 호출. API key 누락·타임아웃(5s)·HTTP 오류·결과 없음 모두 `samplePlaces` fallback 반환. 검색어에 "대전" 없으면 접두어 자동 추가.
+- lib/kakao/index.ts — Kakao 모듈 re-export
+- app/api/kakao/search/route.ts — POST/GET: 장소 검색 → 실패 시 fallback. `KAKAO_REST_API_KEY` 응답에 노출 금지. 항상 200 응답.
+- components/analyze/PlaceInput.tsx — 실제 검색 UI로 확장. debounce 400ms, 2글자 미만 자동검색 미실행, 검색 버튼 제공(고령자 UX). 결과 드롭다운, 키보드 접근성(↑↓, Enter, Escape). 내부 query 상태 독립 관리로 순환 업데이트 없음.
+- components/analyze/AnalyzeForm.tsx — Place 객체 중심 상태 관리. `key` 변경으로 PlaceInput 재마운트 시 initialValue 반영. `originPlace`/`destPlace` 모두 선택 시에만 제출 활성화.
+- lib/fallback/samplePlaces.ts — 장소 8개로 보강 (대전복합터미널, 한밭수목원 추가). `source: "SAMPLE"` 필드 추가.
+- types/index.ts — `Place`에 `category?`, `phone?`, `source?` optional 추가. `PlaceSearchSource` 타입 추가.
+- tests/kakao/normalizeKakaoPlace.test.ts — 정규화 함수 8개 테스트 (x/y → lng/lat 변환, 좌표 오류 제외, 중복 제거, 금지 입력 등)
+- tests/kakao/searchPlace-fallback.test.ts — fallback 동작 10개 테스트 (API key 없음, 빈 query, key 노출 검증, 금지 표현 검증)
+
+구조:
+- `KAKAO_REST_API_KEY`는 서버 전용 환경변수 (NEXT_PUBLIC_ 접두사 없음, 클라이언트 노출 금지)
+- Kakao Local 실패 시 `samplePlaces` fallback 자동 적용 — 화면이 깨지지 않음
+- 클라이언트는 `/api/kakao/search`만 호출. Kakao 직접 호출 없음.
+- 실제 지도 표시, 마커, Kakao Map SDK는 아직 연동하지 않음
+
+```bash
+# .env.local에 추가
+KAKAO_REST_API_KEY=<kakao-rest-api-key>
+
+# 장소 검색 (dev 서버 실행 후)
+curl -X POST http://localhost:3000/api/kakao/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "대전광역시청",
+    "size": 5
+  }'
+
+# 테스트 실행
+npm run test
+```
+
+### 작업 15.5
+
+- types/kakao-map.d.ts — Kakao Map SDK 전역 Window 타입 최소 선언 (Map, LatLng, Marker, Polyline, LatLngBounds)
+- components/map/types.ts — `MapPoint`, `KakaoMapProps`, `MapLoadState` 타입 정의
+- components/map/mapUtils.ts — 순수 유틸: `isValidCoordinate`, `createMapPointFromPlace`, `getMapCenter`, `getDaejeonDefaultCenter`
+- components/map/MapFallback.tsx — SDK 누락·좌표 없음·오류 시 fallback UI. 과도한 오류 메시지 미노출.
+- components/map/MapLegend.tsx — 출발지/도착지/참고선 범례. "실제 이동 경로가 아닙니다" 명시.
+- components/map/KakaoMap.tsx — `"use client"` 컴포넌트. `autoload=false` + `kakao.maps.load()` 패턴. 중복 script 삽입 방지. API key 없으면 MapFallback. SDK 오류 시 MapFallback.
+- components/map/MapSection.tsx — `AnalysisResult`에서 origin/destination을 MapPoint로 변환. 좌표 있으면 KakaoMap + MapLegend, 없으면 MapFallback.
+- components/map/index.ts — 맵 모듈 re-export
+- components/result/ResultPageView.tsx — `MapPlaceholder` → `MapSection`으로 교체. /result/test·/result/[id] 모두 지도 섹션 표시.
+- tests/map/mapUtils.test.ts — 순수 함수 10개 테스트 (유효 좌표, 잘못된 좌표, Place→MapPoint, 중심 좌표, 기본 대전 좌표, 금지 표현 검증)
+
+구조:
+- `NEXT_PUBLIC_KAKAO_MAP_KEY`는 Kakao Map JavaScript SDK용 앱 키 (public 환경변수)
+- `KAKAO_REST_API_KEY`는 계속 서버 전용 (클라이언트 노출 금지). 두 키는 별도 발급.
+- Kakao Map SDK 로드 실패 또는 key 미설정 시 MapFallback 자동 표시 — 페이지 전체가 깨지지 않음
+- 지도 선(Polyline)은 출발지-도착지 단순 연결선으로, 실제 도로/대중교통 경로가 아님을 명시
+- 카카오 공유 기능은 아직 구현하지 않음
+
+```bash
+# .env.local에 추가
+NEXT_PUBLIC_KAKAO_MAP_KEY=<kakao-map-js-sdk-app-key>   # Kakao Map JavaScript SDK 앱 키
+KAKAO_REST_API_KEY=<kakao-rest-api-key>                 # Kakao Local REST API 서버용 키 (별도 발급)
+
+# 테스트 실행
+npm run test
+```
+
+### 작업 16
+
+- lib/api/response.ts — `createSuccessResponse` / `createFallbackResponse` Route Handler 응답 헬퍼
+- lib/api/errors.ts — `toSafeErrorReason` (stack trace 미포함, 120자 제한) / `getUserFriendlyMessage` (source별 안내 메시지)
+- lib/fallback/fallbackFlags.ts — `createDefaultFallbackFlags` / `mergeFallbackFlags` / `hasAnyFallback`
+- lib/fallback/createFallbackAnalysis.ts — sampleAnalysis를 deep spread해 새 인스턴스 반환 (원본 mutate 없음)
+- app/error.tsx — 전역 에러 경계 (`"use client"`, ErrorState 컴포넌트 사용, dev 환경에서만 message 로그)
+- app/result/[id]/loading.tsx — Suspense fallback 로딩 화면 (LoadingState + SkeletonCard)
+- types/index.ts — `FallbackFlags`에 `analysis`, `place`, `map`, `storage` 필드 추가. `ExternalSource` 타입 추가.
+- lib/fallback/sampleAnalysis.ts — `drivingRisk.description`에서 "사고 확률" 표현 제거
+- tests/api/response.test.ts — 응답 헬퍼 / 오류 유틸 테스트 (17개)
+- tests/fallback/fallback-stability.test.ts — createFallbackAnalysis / fallbackFlags 테스트 (금지 표현 검증 포함, 16개)
+
+```bash
+npm run test  # 175개 테스트 전체 통과
+```
+
+### 작업 17
+
+- app/api/health/route.ts — 배포 후 상태 확인용 헬스체크 endpoint (실제 API 호출 없음, 환경변수 존재 여부 boolean만 반환)
+- lib/api/healthCheck.ts — 헬스체크 데이터 생성 순수 함수 (테스트 가능)
+- .env.local.example — 환경변수 설명 주석 보강 (브라우저 노출 가능 / 서버 전용 구분)
+- docs/env-checklist.md — 환경변수 체크리스트 (Vercel 설정 방법, 키 구분, fallback 동작 설명)
+- docs/deployment-checklist.md — Vercel 배포 체크리스트 (로컬 확인 → Vercel 연결 → 도메인 설정 → 제출 전 확인)
+- tests/api/health.test.ts — 헬스체크 함수 테스트 (환경변수 boolean 확인, 키 값 미노출, 금지 표현 검증)
+
+Vercel 배포 준비가 완료되었습니다.
+
+#### 로컬 확인 명령어
+
+```bash
+npm install
+npm run test
+npm run build
+npm run dev
+```
+
+#### 배포 후 헬스체크 확인
+
+```bash
+curl https://배포도메인/api/health
+```
+
+#### 문서 위치
+
+- 환경변수 설정 방법: [docs/env-checklist.md](./docs/env-checklist.md)
+- 배포 절차 체크리스트: [docs/deployment-checklist.md](./docs/deployment-checklist.md)
+
+#### 배포 후 확인 URL
+
+| URL | 설명 |
+|---|---|
+| `/` | 랜딩 페이지 |
+| `/analyze` | 분석 입력 화면 |
+| `/result/test` | 예시 결과 화면 |
+| `/api/health` | 헬스체크 (환경변수 설정 여부 확인) |
+| `/api/analyze` (POST) | 분석 요청 |
+| `/api/kakao/search` (POST) | 장소 검색 |
+| `/api/route` (POST) | 대중교통 경로 |
+| `/api/weather` (GET/POST) | 날씨 조회 |
+| `/api/report` (POST) | 리포트 생성 |
+
+> 배포 후 실제 API 연동 여부는 각 endpoint를 직접 호출해 확인하세요. 환경변수가 없거나 외부 API가 실패해도 fallback 응답으로 화면이 유지됩니다.
+
+### 작업 18
+
+- tests/qa/expression-rules.test.ts — 표현 원칙 위반 감지 테스트 (sampleAnalysis, sampleRoute, sampleWeather, generateTemplateReport, createFallbackAnalysis)
+- tests/qa/fallback-contract.test.ts — fallback 계약 테스트 (각 fallback helper가 올바른 타입 반환, 잘못된 입력에 throw 없음)
+- tests/qa/env-safety.test.ts — 환경변수 보안 테스트 (서버 전용 키 NEXT_PUBLIC_ 없음, .env.local.example 실제 값 없음, health check 키 미노출)
+- docs/final-qa.md — 최종 QA 문서 (페이지/API/fallback/표현 원칙/환경변수 보안/접근성/배포 확인)
+- docs/demo-scenario.md — 공모전 시연 시나리오 (16단계 시연 흐름 + 시연 문구)
+- docs/submission-checklist.md — 제출 전 체크리스트 (환경변수, 배포, 표현 원칙, MVP 제외 범위)
+
+```bash
+npm run test  # 229개 테스트 전체 통과 (작업 18 완료 기준)
+```
+
+---
+
+## 최종 상태 요약
+
+SilverWay MVP 개발 완료. 공모전 제출 가능 상태.
+
+### 로컬 확인 명령어
+
+```bash
+npm install
+npm run dev
+npm run test
+npm run build
+```
+
+로컬 확인 URL:
+```
+http://localhost:3000
+http://localhost:3000/analyze
+http://localhost:3000/result/test
+http://localhost:3000/api/health
+```
+
+### 배포 후 확인
+
+```bash
+curl https://배포도메인/api/health
+```
+
+확인 URL:
+```
+https://배포도메인/
+https://배포도메인/analyze
+https://배포도메인/result/test
+https://배포도메인/api/health
+```
+
+### 문서 위치
+
+| 문서 | 경로 |
+|---|---|
+| 환경변수 체크리스트 | [docs/env-checklist.md](./docs/env-checklist.md) |
+| 배포 체크리스트 | [docs/deployment-checklist.md](./docs/deployment-checklist.md) |
+| 최종 QA 문서 | [docs/final-qa.md](./docs/final-qa.md) |
+| 공모전 시연 시나리오 | [docs/demo-scenario.md](./docs/demo-scenario.md) |
+| 제출 전 체크리스트 | [docs/submission-checklist.md](./docs/submission-checklist.md) |
+
+### 표현 원칙
+
+- 위험도 점수 = "운전 위험 지수" (사고 확률 아님)
+- 혼잡도 = "과거 패턴 기반 예측형 혼잡도" (실시간 아님)
+- 면허 반납 = 가족과 함께 논의할 수 있는 의사결정 보조 관점
+- 서비스 = 의사결정 보조 도구 (사고 가능성 단정 금지)
+
+### MVP 제외 범위
+
+- 회원가입 / 로그인 / auth
+- 관리자 페이지
+- 결제 / 알림
+- 카카오 공유 (클립보드 복사는 구현됨)
+
+### fallback 동작
+
+모든 외부 API는 키 미설정 또는 실패 시 자동으로 예시 데이터(fallback)를 반환합니다. 화면이 깨지지 않습니다.
+
+| 실패 항목 | fallback |
+|---|---|
+| Kakao Local | samplePlaces |
+| Kakao Map SDK | MapFallback 컴포넌트 |
+| ODsay | sampleRoute |
+| 기상청 | sampleWeather |
+| Claude | generateTemplateReport |
+| Supabase | sampleAnalysis |

@@ -11,7 +11,6 @@ import { DepartureTimeSelector, type DepartureSlot } from "./DepartureTimeSelect
 import { AgeGroupSelector } from "./AgeGroupSelector";
 import { AnalyzeNotice } from "./AnalyzeNotice";
 
-// 슬롯별 출발 시각 (KST +09:00)
 function buildDepartureTime(slot: DepartureSlot, customTime: string): string {
   if (slot === "custom" && customTime) {
     return new Date(customTime).toISOString();
@@ -27,44 +26,51 @@ function buildDepartureTime(slot: DepartureSlot, customTime: string): string {
   return now.toISOString();
 }
 
-// 텍스트만 입력된 경우 대전 중심 좌표를 placeholder로 사용
-function asPlace(text: string, selected: Place | null): Place {
-  if (selected) return selected;
-  return { name: text, address: text, lat: 36.3504, lng: 127.3845 };
-}
-
 export function AnalyzeForm() {
   const router = useRouter();
 
-  const [originText, setOriginText] = useState("");
+  // key 변경 시 PlaceInput이 재마운트되어 initialValue를 반영한다
+  const [originKey, setOriginKey] = useState(0);
   const [originPlace, setOriginPlace] = useState<Place | null>(null);
-  const [destText, setDestText] = useState("");
+  const [destKey, setDestKey] = useState(0);
   const [destPlace, setDestPlace] = useState<Place | null>(null);
+
   const [departureSlot, setDepartureSlot] = useState<DepartureSlot | "">("");
   const [customTime, setCustomTime] = useState("");
   const [ageGroup, setAgeGroup] = useState<AgeGroup | "">("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasFallback, setHasFallback] = useState(false);
 
   const canSubmit =
-    originText.trim().length > 0 &&
-    destText.trim().length > 0 &&
+    originPlace !== null &&
+    destPlace !== null &&
     departureSlot !== "" &&
     (departureSlot !== "custom" || customTime !== "") &&
     ageGroup !== "";
 
-  function selectOrigin(place: Place) {
-    setOriginText(place.name);
+  // RecentPlaceList에서 선택: key를 바꿔 PlaceInput을 재마운트하고 초기값을 반영한다
+  function selectOriginFromList(place: Place) {
+    setOriginPlace(place);
+    setOriginKey((k) => k + 1);
+  }
+
+  function selectDestFromList(place: Place) {
+    setDestPlace(place);
+    setDestKey((k) => k + 1);
+  }
+
+  // PlaceInput 내부 검색에서 선택: key는 변경하지 않는다
+  function handleOriginSelect(place: Place) {
     setOriginPlace(place);
   }
 
-  function selectDest(place: Place) {
-    setDestText(place.name);
+  function handleDestSelect(place: Place) {
     setDestPlace(place);
   }
 
   async function handleSubmit() {
-    if (!canSubmit) return;
+    if (!canSubmit || !originPlace || !destPlace) return;
     setLoading(true);
     setError(null);
 
@@ -73,19 +79,20 @@ export function AnalyzeForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          origin: asPlace(originText, originPlace),
-          destination: asPlace(destText, destPlace),
+          origin: originPlace,
+          destination: destPlace,
           departureTime: buildDepartureTime(departureSlot as DepartureSlot, customTime),
           ageGroup: ageGroup as AgeGroup,
         }),
       });
 
       if (!res.ok) throw new Error("API_ERROR");
-      const json = await res.json() as { resultId?: string };
+      const json = await res.json() as { resultId?: string; meta?: { fallback?: boolean } };
+      if (json?.meta?.fallback) setHasFallback(true);
       const resultId = json?.resultId;
       router.push(resultId ? `/result/${resultId}` : "/result/test");
     } catch {
-      setError("분석 요청 중 오류가 생겼어요. 예시 결과로 이동하시겠어요?");
+      setError("분석 요청 중 문제가 생겼어요. 예시 결과를 확인하거나 다시 시도해 주세요.");
     } finally {
       setLoading(false);
     }
@@ -93,7 +100,10 @@ export function AnalyzeForm() {
 
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); void handleSubmit(); }}
+      onSubmit={(e) => {
+        e.preventDefault();
+        void handleSubmit();
+      }}
       style={{ display: "flex", flexDirection: "column", gap: 24 }}
     >
       {/* 장소 입력 */}
@@ -109,9 +119,11 @@ export function AnalyzeForm() {
         }}
       >
         <PlaceInput
+          key={originKey}
           label="출발지"
-          value={originText}
-          onChange={(text) => { setOriginText(text); setOriginPlace(null); }}
+          initialValue={originPlace?.name ?? ""}
+          onSelect={handleOriginSelect}
+          onClear={() => setOriginPlace(null)}
           placeholder="예: 대전광역시청"
         />
 
@@ -119,18 +131,33 @@ export function AnalyzeForm() {
         <div style={{ height: 1, background: "var(--sw-hairline)", margin: "0 -4px" }} />
 
         <PlaceInput
+          key={destKey + 1000}
           label="도착지"
-          value={destText}
-          onChange={(text) => { setDestText(text); setDestPlace(null); }}
+          initialValue={destPlace?.name ?? ""}
+          onSelect={handleDestSelect}
+          onClear={() => setDestPlace(null)}
           placeholder="예: 충남대학교병원"
         />
+
+        {/* 장소 선택 안내 */}
+        {(!originPlace || !destPlace) && (
+          <div
+            style={{
+              fontSize: "var(--sw-fs-xs)",
+              color: "var(--sw-ink-3)",
+              paddingTop: 4,
+            }}
+          >
+            검색 후 목록에서 장소를 선택해 주세요.
+          </div>
+        )}
       </div>
 
       {/* 추천 장소 */}
       <RecentPlaceList
         places={samplePlaces}
-        onSelectAsOrigin={selectOrigin}
-        onSelectAsDestination={selectDest}
+        onSelectAsOrigin={selectOriginFromList}
+        onSelectAsDestination={selectDestFromList}
       />
 
       {/* 출발 시간 */}
@@ -178,6 +205,22 @@ export function AnalyzeForm() {
           }}
         >
           {error}
+        </div>
+      )}
+
+      {/* fallback 안내 */}
+      {hasFallback && !error && (
+        <div
+          style={{
+            padding: "12px 14px",
+            background: "var(--sw-paper-elev)",
+            borderRadius: "var(--sw-r-lg)",
+            fontSize: 13,
+            color: "var(--sw-ink-3)",
+            lineHeight: 1.6,
+          }}
+        >
+          일부 외부 데이터를 불러오지 못해 예시 데이터를 함께 사용했습니다.
         </div>
       )}
 

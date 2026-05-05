@@ -14,7 +14,9 @@
       "Bash(Write-Output \"OK\")",
       "PowerShell(New-Item *)",
       "Bash(node -e \"console.log\\(require\\('./node_modules/@supabase/supabase-js/package.json'\\).version\\)\")",
-      "Bash(node -e \"const t = require\\('./node_modules/@supabase/supabase-js'\\); console.log\\(Object.keys\\(t\\)\\)\")"
+      "Bash(node -e \"const t = require\\('./node_modules/@supabase/supabase-js'\\); console.log\\(Object.keys\\(t\\)\\)\")",
+      "Bash(node -e \"require\\('@anthropic-ai/sdk'\\)\")",
+      "Bash(npx next *)"
     ]
   }
 }

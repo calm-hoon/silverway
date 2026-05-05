@@ -1,30 +1,29 @@
-// 리포트 생성 Mock API — 실제 Claude API 연동은 아직 없음
-import { generateTemplateReport } from "@/lib/report/generateTemplateReport";
+import { generateClaudeReport } from "@/lib/report/generateClaudeReport";
+import { generateTemplateReportFromAnalysis } from "@/lib/report/generateTemplateReport";
 import { sampleAnalysis } from "@/lib/fallback/sampleAnalysis";
-import type { GenerateTemplateReportInput } from "@/lib/report/generateTemplateReport";
+import type { AnalysisResult } from "@/types";
 
 export async function POST(request: Request) {
-  let input: GenerateTemplateReportInput = {};
+  let analysis: AnalysisResult = sampleAnalysis;
   try {
-    input = await request.json();
+    const body = await request.json() as { analysis?: Partial<AnalysisResult> };
+    if (body.analysis && typeof body.analysis === "object") {
+      analysis = { ...sampleAnalysis, ...body.analysis } as AnalysisResult;
+    }
   } catch {
-    // body 파싱 실패 시 sampleAnalysis 기반으로 리포트 생성
-    input = {
-      originName: sampleAnalysis.request.origin.name,
-      destinationName: sampleAnalysis.request.destination.name,
-      drivingRisk: sampleAnalysis.drivingRisk,
-      transit: sampleAnalysis.transit,
-      weather: sampleAnalysis.weather,
-      departureTime: sampleAnalysis.request.departureTime,
-      ageGroup: sampleAnalysis.request.ageGroup,
-    };
+    // body 파싱 실패 시 sampleAnalysis 사용
   }
 
-  const report = generateTemplateReport(input);
+  const result = await generateClaudeReport({ analysis });
+
   return Response.json({
     ok: true,
-    mode: "MOCK",
-    message: "템플릿 리포트를 생성했습니다. 실제 Claude API는 아직 연동되지 않았습니다.",
-    data: report,
+    mode: "CLAUDE_OR_TEMPLATE",
+    data: result.report,
+    meta: {
+      source: result.source,
+      fallback: !result.ok,
+      ...(!result.ok && { reason: result.reason }),
+    },
   });
 }
