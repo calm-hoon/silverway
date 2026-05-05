@@ -56,7 +56,9 @@ export async function getTransitRoute(input: OdsayRouteRequest): Promise<OdsayRo
 
     if (json["error"]) {
       const err = json["error"] as Record<string, unknown>;
-      return makeFallback(`ODsay error ${String(err["code"] ?? "")}`);
+      const code = String(err["code"] ?? "");
+      const msg = String(err["msg"] ?? err["message"] ?? "");
+      return makeFallback(`ODsay error code=${code} msg=${msg}`);
     }
 
     const normalized = normalizeOdsayRoute(json);

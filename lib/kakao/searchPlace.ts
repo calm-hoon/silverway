@@ -64,6 +64,13 @@ export async function searchPlace(input: KakaoPlaceSearchRequest): Promise<Kakao
     }
 
     const raw: unknown = await res.json();
+
+    // Kakao가 200이지만 에러 body를 반환하는 경우 감지
+    if (raw && typeof raw === "object" && "errorType" in raw) {
+      const errObj = raw as Record<string, unknown>;
+      return fallbackFromSample(input.query, `Kakao API 오류: ${String(errObj["errorType"])} - ${String(errObj["message"] ?? "")}`);
+    }
+
     const places: Place[] = normalizeKakaoPlaces(raw);
 
     if (places.length === 0) {
