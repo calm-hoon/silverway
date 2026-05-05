@@ -1,0 +1,228 @@
+================================================================
+SilverWay — Supabase 설정 가이드
+================================================================
+
+이 가이드는 SilverWay 서비스의 Supabase 프로젝트를 처음부터
+설정하는 순서를 설명합니다.
+
+----------------------------------------------------------------
+1단계. Supabase 프로젝트 생성
+----------------------------------------------------------------
+
+1. https://supabase.com 접속 후 로그인 (GitHub 계정 가능)
+
+2. 대시보드에서 "New project" 클릭
+
+3. 다음 값으로 프로젝트 생성:
+   - Organization: 본인 계정 선택
+   - Project name: silverway (또는 원하는 이름)
+   - Database Password: 안전한 비밀번호 입력 후 반드시 메모
+   - Region: Northeast Asia (Seoul) 선택
+   - Plan: Free 선택
+
+4. "Create new project" 클릭 → 프로젝트 생성까지 약 1~2분 대기
+
+----------------------------------------------------------------
+2단계. API 키 수집
+----------------------------------------------------------------
+
+프로젝트 생성 완료 후:
+  Supabase 대시보드 → 왼쪽 메뉴 → Project Settings → API
+
+수집할 값 3개:
+
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Project URL (= NEXT_PUBLIC_SUPABASE_URL)                 │
+│    형식: https://<project-id>.supabase.co                   │
+│    위치: Project Settings → API → Project URL              │
+│    용도: 브라우저/서버 공통 사용. .env.local에 기재.        │
+├─────────────────────────────────────────────────────────────┤
+│ 2. anon / public key (= NEXT_PUBLIC_SUPABASE_ANON_KEY)      │
+│    형식: eyJhbGciOiJI... (긴 JWT 문자열)                    │
+│    위치: Project Settings → API → Project API Keys          │
+│           → anon public 항목                                │
+│    용도: 브라우저 클라이언트용. .env.local에 기재.          │
+├─────────────────────────────────────────────────────────────┤
+│ 3. service_role / secret key (= SUPABASE_SERVICE_ROLE_KEY)  │
+│    형식: eyJhbGciOiJI... (anon key와 다른 긴 JWT)           │
+│    위치: Project Settings → API → Project API Keys          │
+│           → service_role 항목 (Reveal 버튼 클릭)           │
+│    용도: 서버 전용 admin 권한. 절대 브라우저/공개 금지.     │
+│    주의: 이 키는 RLS를 우회하므로 절대 공개 저장소나        │
+│           클라이언트 번들에 포함되어서는 안 됩니다.         │
+└─────────────────────────────────────────────────────────────┘
+
+----------------------------------------------------------------
+3단계. 로컬 .env.local 파일 작성
+----------------------------------------------------------------
+
+프로젝트 루트(Z:\silverway\silverway)에 .env.local 파일 생성:
+
+  (Windows PowerShell)
+  cp .env.local.example .env.local
+  notepad .env.local
+
+아래 내용으로 채우기 (실제 값으로 교체):
+
+  NEXT_PUBLIC_SUPABASE_URL=https://<project-id>.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJI...
+  SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJI...
+
+주의:
+  - .env.local은 절대 git에 커밋하지 않습니다.
+  - .gitignore에 .env.local이 포함되어 있는지 확인하세요.
+
+----------------------------------------------------------------
+4단계. 데이터베이스 스키마 적용 (Migration)
+----------------------------------------------------------------
+
+방법 A — Supabase 대시보드 SQL Editor 사용 (권장, 간단)
+
+1. 대시보드 → 왼쪽 메뉴 → SQL Editor
+2. "New query" 클릭
+3. 아래 파일의 내용을 전체 복사해서 붙여넣기:
+     파일 위치: supabase/migrations/001_init_schema.sql
+4. "RUN" 버튼 클릭 (또는 Ctrl+Enter)
+5. "Success" 메시지 확인
+
+생성되는 테이블 목록:
+  - accident_areas     (고령 운전자 사고 패턴 — 구별 집계)
+  - accident_points    (사고 지점 좌표 — MVP 선택 사용)
+  - afc_station_loads  (AFC 재차인원 — 과거 패턴 기반 예측형 혼잡도용)
+  - station_aliases    (ODsay ↔ AFC 역명 매칭)
+  - analysis_logs      (분석 결과 저장 — /result/[id] 조회용)
+
+방법 B — Supabase CLI 사용 (선택)
+
+  npx supabase login
+  npx supabase link --project-ref <project-id>
+  npx supabase db push
+
+----------------------------------------------------------------
+5단계. Seed 데이터 삽입 (선택 — 시연 데이터 포함)
+----------------------------------------------------------------
+
+방법 A — Supabase SQL Editor 사용 (권장)
+
+1. 대시보드 → SQL Editor → "New query"
+2. 아래 파일 내용을 전체 복사해서 붙여넣기:
+     파일 위치: supabase/seed.sql
+3. "RUN" 클릭
+
+삽입되는 데이터:
+  - accident_areas 5건 (대전 5개 구 사고 패턴 샘플)
+  - afc_station_loads 8건 (시청역, 정부청사역, 대전역, 충남대역)
+  - station_aliases 6건 (ODsay ↔ AFC 역명 매핑)
+  - analysis_logs 1건 (대전광역시청 → 충남대학교병원 시연 샘플)
+
+방법 B — 스크립트 실행 (선택)
+
+  # .env.local에 SUPABASE_SERVICE_ROLE_KEY 설정 필요
+  npx tsx scripts/seed-supabase.ts
+
+----------------------------------------------------------------
+6단계. 테이블 생성 확인
+----------------------------------------------------------------
+
+1. 대시보드 → 왼쪽 메뉴 → Table Editor
+2. 아래 5개 테이블이 보이는지 확인:
+   - accident_areas
+   - accident_points
+   - afc_station_loads
+   - station_aliases
+   - analysis_logs
+
+또는 SQL Editor에서 확인:
+
+  SELECT table_name FROM information_schema.tables
+  WHERE table_schema = 'public'
+  ORDER BY table_name;
+
+----------------------------------------------------------------
+7단계. 연동 동작 확인
+----------------------------------------------------------------
+
+로컬 개발 서버 실행 후 아래 명령으로 확인:
+
+  # 분석 결과 저장 테스트 (resultId가 UUID 형식이면 Supabase 저장 성공)
+  curl -X POST http://localhost:3000/api/analyze \
+    -H "Content-Type: application/json" \
+    -d '{
+      "origin": {
+        "name": "대전광역시청",
+        "address": "대전 서구 둔산로 100",
+        "lat": 36.3504,
+        "lng": 127.3845
+      },
+      "destination": {
+        "name": "충남대학교병원",
+        "address": "대전 중구 문화로 282",
+        "lat": 36.3166,
+        "lng": 127.4156
+      },
+      "departureTime": "2026-05-04T10:00:00+09:00",
+      "ageGroup": "70s"
+    }'
+
+  응답에서 resultId 확인:
+  - UUID 형식 (예: "3a2b1c...") → Supabase 저장 성공
+  - "mock-..." 또는 "fallback-..." → 환경변수 미설정 (fallback 동작)
+
+  # 결과 조회 테스트 (위에서 받은 resultId 사용)
+  curl http://localhost:3000/api/result/<resultId>
+
+  응답에서 확인:
+  - meta.storageSource = "SUPABASE" → Supabase 조회 성공
+  - meta.storageSource = "FALLBACK" → fallback 동작 (정상)
+
+  # 헬스체크로 환경변수 설정 여부 확인
+  curl http://localhost:3000/api/health
+
+  응답에서 확인:
+  - checks.supabaseUrl: true
+  - checks.supabaseAnonKey: true
+  - checks.supabaseServiceRoleKey: true
+
+----------------------------------------------------------------
+8단계. Supabase → Vercel 환경변수 연동
+----------------------------------------------------------------
+
+Vercel 배포 시 아래 3개를 Vercel 환경변수에도 동일하게 입력합니다.
+(vercel_setup.txt 참조)
+
+  NEXT_PUBLIC_SUPABASE_URL=https://<project-id>.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJI...
+  SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJI...
+
+----------------------------------------------------------------
+RLS (Row Level Security) 참고
+----------------------------------------------------------------
+
+현재 상태:
+  - RLS는 MVP 단계에서 비활성화 상태입니다.
+  - service role key를 사용하는 admin client로만 insert/select합니다.
+  - anon key 클라이언트는 현재 직접 DB 접근에 사용되지 않습니다.
+
+추후 실서비스 전환 시:
+  - analysis_logs에 RLS 정책 추가 필요
+  - 읽기: 모든 anon 사용자가 자신의 resultId로만 조회 가능
+  - 쓰기: service role만 insert 가능
+
+RLS 활성화 예시 (추후 적용):
+  ALTER TABLE analysis_logs ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "allow_select_by_id" ON analysis_logs
+    FOR SELECT USING (true);  -- MVP: 누구나 id로 조회 가능
+
+----------------------------------------------------------------
+파일 위치 요약
+----------------------------------------------------------------
+
+  supabase/migrations/001_init_schema.sql  ← 스키마 (4단계)
+  supabase/seed.sql                        ← 시연 데이터 (5단계)
+  scripts/seed-supabase.ts                 ← 스크립트 방식 seed
+  lib/supabase/env.ts                      ← 환경변수 읽기 유틸
+  lib/supabase/client.ts                   ← 클라이언트 컴포넌트용
+  lib/supabase/server.ts                   ← Route Handler용 (admin 포함)
+  lib/supabase/analysisLogs.ts             ← 저장/조회 함수
+  .env.local.example                       ← 환경변수 예시 파일
+  docs/env-checklist.md                    ← 환경변수 상세 설명
