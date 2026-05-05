@@ -7,6 +7,23 @@ import { calculateDrivingRisk } from "@/lib/risk/calculateDrivingRisk";
 import { generateClaudeReport } from "@/lib/report/generateClaudeReport";
 import type { AnalysisRequest, AnalysisResult } from "@/types";
 
+export function GET() {
+  return Response.json({
+    ok: true,
+    message: "POST 요청으로 분석을 시작하세요.",
+    usage: {
+      method: "POST",
+      contentType: "application/json",
+      body: {
+        origin: { name: "string", address: "string", lat: "number", lng: "number" },
+        destination: { name: "string", address: "string", lat: "number", lng: "number" },
+        departureTime: "ISO 8601 string",
+        ageGroup: "60s | 70s | 80s",
+      },
+    },
+  });
+}
+
 export async function POST(request: Request) {
   try {
     let body: Partial<AnalysisRequest> = {};
