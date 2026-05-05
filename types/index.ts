@@ -271,6 +271,52 @@ export type ResultLookupMeta = {
   fallback: boolean;
 };
 
+export type AccidentAreaRow = {
+  id: string;
+  sido: string;
+  sigungu: string;
+  dong: string | null;
+  region_full_name: string | null;
+  accident_count: number;
+  elderly_driver_count: number;
+  fatal_count: number;
+  severe_count: number;
+  minor_count: number;
+  injury_report_count: number;
+  day_count: number;
+  night_count: number;
+  risk_score: number;
+  center_lat: number | null;
+  center_lng: number | null;
+  source_year: number | null;
+  source_year_start: number | null;
+  source_year_end: number | null;
+  source_file: string | null;
+  raw_payload: Json | null;
+  created_at: string;
+};
+
+export type AfcStationLoadRow = {
+  id: string;
+  service_date: string | null;
+  day_of_week: string | null;
+  service_day_type: string | null;
+  direction: string | null;
+  direction_label: string | null;
+  train_no: string | null;
+  origin_station: string | null;
+  departure_time: string | null;
+  destination_station: string | null;
+  arrival_time: string | null;
+  hour: number | null;
+  station_name: string | null;
+  station_name_raw: string | null;
+  onboard_count: number | null;
+  source_period: string | null;
+  source_file: string | null;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -278,6 +324,18 @@ export type Database = {
         Row: AnalysisLogRow;
         Insert: AnalysisLogInsert;
         Update: Partial<AnalysisLogInsert>;
+        Relationships: [];
+      };
+      accident_areas: {
+        Row: AccidentAreaRow;
+        Insert: Omit<AccidentAreaRow, "id" | "created_at">;
+        Update: Partial<Omit<AccidentAreaRow, "id" | "created_at">>;
+        Relationships: [];
+      };
+      afc_station_loads: {
+        Row: AfcStationLoadRow;
+        Insert: Omit<AfcStationLoadRow, "id" | "created_at">;
+        Update: Partial<Omit<AfcStationLoadRow, "id" | "created_at">>;
         Relationships: [];
       };
     };

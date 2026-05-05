@@ -49,7 +49,7 @@ beforeEach(() => {
 
   mockGetTransitRoute.mockResolvedValue({ ok: false, transit: sampleAnalysis.transit, source: "FALLBACK", reason: "ODSAY_API_KEY_MISSING" });
   mockGetWeatherRisk.mockResolvedValue({ ok: false, weather: sampleAnalysis.weather, source: "FALLBACK", reason: "KMA_KEY_MISSING" });
-  mockGenerateClaudeReport.mockResolvedValue({ ok: false, report: sampleAnalysis.report, source: "TEMPLATE" });
+  mockGenerateClaudeReport.mockResolvedValue({ ok: false, report: sampleAnalysis.report, source: "TEMPLATE", reason: "TEMPLATE_FALLBACK" });
   mockSaveAnalysisLog.mockResolvedValue({ ok: true, id: SAVED_ID, result: { ...sampleAnalysis, id: SAVED_ID } as AnalysisResult });
 });
 

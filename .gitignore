@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 원천 데이터 파일 — 공개 저장소 업로드 금지
+prompt/*.xls
+prompt/*.xlsx
+data/raw/
+data/processed/afc-station-loads.json
+data/processed/accident-areas.json
+!data/processed/*.preview.json
+prompt/

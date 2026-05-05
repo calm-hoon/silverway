@@ -94,8 +94,8 @@ describe("generateTemplateReport 표현 원칙", () => {
     const report = generateTemplateReport({
       transit: {
         available: true,
-        route: { totalDurationMin: 26, transferCount: 0, steps: [] },
-        congestion: { level: "MEDIUM", label: "보통", description: "" },
+        route: { totalDurationMin: 26, transferCount: 0, steps: [], source: "FALLBACK" },
+        congestion: { level: "MEDIUM", label: "보통", description: "", basis: "HISTORICAL_PATTERN" as const },
       },
     });
     expect(JSON.stringify(report)).toContain("과거 패턴 기반 예측형 혼잡도");

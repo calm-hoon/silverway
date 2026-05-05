@@ -4,8 +4,11 @@ import { saveAnalysisLog } from "@/lib/supabase/analysisLogs";
 import { getTransitRoute } from "@/lib/odsay";
 import { getWeatherRisk } from "@/lib/weather";
 import { calculateDrivingRisk } from "@/lib/risk/calculateDrivingRisk";
+import { calculateCongestion } from "@/lib/risk/calculateCongestion";
 import { generateClaudeReport } from "@/lib/report/generateClaudeReport";
-import type { AnalysisRequest, AnalysisResult } from "@/types";
+import { extractSigungu, getAccidentAreaBySigungu } from "@/lib/data/accidentAreas";
+import { getAfcStationLoads, getAfcHourlyAverage } from "@/lib/data/afcStationLoads";
+import type { AnalysisRequest, AnalysisResult, TransitStep } from "@/types";
 
 export function GET() {
   return Response.json({
@@ -35,9 +38,15 @@ export async function POST(request: Request) {
 
     const originLat = body.origin?.lat ?? sampleAnalysis.request.origin.lat;
     const originLng = body.origin?.lng ?? sampleAnalysis.request.origin.lng;
+    const originAddress = body.origin?.address ?? "";
+    const destAddress = body.destination?.address ?? "";
+    const departureTime = body.departureTime ?? sampleAnalysis.request.departureTime;
 
-    // ODsay 대중교통 경로 조회 + 기상청 날씨 조회 — 병렬 실행
-    const [transitResult, weatherResult] = await Promise.all([
+    // sigungu 추출 — 출발지 우선, 없으면 목적지
+    const sigungu = extractSigungu(originAddress) ?? extractSigungu(destAddress);
+
+    // ODsay 경로 조회 + 날씨 조회 + TAAS 사고지역 조회 — 병렬 실행
+    const [transitResult, weatherResult, accidentAreaResult] = await Promise.all([
       getTransitRoute({
         originLat,
         originLng,
@@ -45,13 +54,55 @@ export async function POST(request: Request) {
         destinationLng: body.destination?.lng ?? sampleAnalysis.request.destination.lng,
       }),
       getWeatherRisk({ lat: originLat, lng: originLng }),
+      sigungu ? getAccidentAreaBySigungu(sigungu) : Promise.resolve({ ok: false as const, reason: "SIGUNGU_NOT_FOUND", source: "FALLBACK" as const }),
     ]);
 
-    // 날씨 riskScore를 반영해 운전 위험 지수를 재산정
+    // 첫 번째 지하철 step에서 역명·방향·시간대 추출 (AFC 혼잡도 조회용)
+    const subwayStep = transitResult.transit?.route?.steps.find(
+      (s: TransitStep) => s.mode === "SUBWAY" && s.stationFrom
+    );
+    const afcStationName = subwayStep?.stationFrom ?? null;
+    const departureHour = (() => {
+      try { return new Date(departureTime).getHours(); } catch { return null; }
+    })();
+
+    // AFC 혼잡도 조회 (역명·시간 있을 때만)
+    let congestion = null;
+    if (afcStationName && departureHour !== null) {
+      const [afcResult, avgResult] = await Promise.all([
+        getAfcStationLoads({ stationName: afcStationName, hour: departureHour }),
+        getAfcHourlyAverage(departureHour),
+      ]);
+
+      if (afcResult.ok && afcResult.loads.length > 0) {
+        // 전체 평균이 DB에서 없을 땐 조회된 데이터 기준 평균 사용
+        const overallAvg = avgResult ?? (afcResult.loads.reduce((s, l) => s + l.onboardCount, 0) / afcResult.loads.length);
+        const paddedLoads = afcResult.loads.map((l) => ({ ...l, onboardCount: l.onboardCount }));
+        // calculateCongestion에 전체 평균을 반영하기 위해 더미 rows를 채움 — 실제 평균을 역산해 주입
+        const syntheticBaseCount = Math.round(overallAvg);
+        const baseLoads = Array.from({ length: 10 }, () => ({
+          stationName: "__base__",
+          hour: departureHour,
+          direction: "UP" as const,
+          onboardCount: syntheticBaseCount,
+          serviceDayType: "WEEKDAY" as const,
+        }));
+        congestion = calculateCongestion({
+          stationName: afcStationName,
+          hour: departureHour,
+          stationLoads: [...paddedLoads, ...baseLoads],
+        });
+      }
+    }
+
+    // TAAS 실제 데이터 또는 fallback으로 운전 위험 지수 산정
     const drivingRisk = calculateDrivingRisk({
       ageGroup: body.ageGroup ?? sampleAnalysis.request.ageGroup,
-      departureTime: body.departureTime ?? sampleAnalysis.request.departureTime,
-      accidentArea: { riskScore: 55 },
+      departureTime,
+      accidentArea: accidentAreaResult.ok ? {
+        ...accidentAreaResult.data,
+        dong: accidentAreaResult.data.dong ?? undefined,
+      } : { riskScore: 55 },
       weatherRiskScore: weatherResult.weather.riskScore,
     });
 
@@ -61,7 +112,10 @@ export async function POST(request: Request) {
       ...mock.data,
       drivingRisk,
       weather: weatherResult.weather,
-      transit: transitResult.transit,
+      transit: {
+        ...transitResult.transit,
+        congestion: congestion ?? transitResult.transit?.congestion ?? null,
+      },
       fallbackFlags: {
         analysis: true,
         route: !transitResult.ok,
@@ -92,6 +146,8 @@ export async function POST(request: Request) {
           routeSource: transitResult.source,
           weatherSource: weatherResult.source,
           reportSource: reportResult.source,
+          accidentAreaSource: accidentAreaResult.source,
+          afcCongestionSource: congestion ? "SUPABASE" : "FALLBACK",
         },
         fallbackFlags: analysisData.fallbackFlags,
       });
@@ -109,6 +165,8 @@ export async function POST(request: Request) {
         routeSource: transitResult.source,
         weatherSource: weatherResult.source,
         reportSource: reportResult.source,
+        accidentAreaSource: accidentAreaResult.source,
+        afcCongestionSource: congestion ? "SUPABASE" : "FALLBACK",
       },
       fallbackFlags: analysisData.fallbackFlags,
     });
