@@ -64,7 +64,7 @@ export function TransitAlternativeCard({ transit }: TransitAlternativeCardProps)
           대중교통 대체 경로
         </div>
         {route.source.includes("fallback") && (
-          <Badge variant="muted">Mock 경로</Badge>
+          <Badge variant="muted">보조 데이터 경로</Badge>
         )}
       </div>
 
@@ -203,7 +203,9 @@ export function TransitAlternativeCard({ transit }: TransitAlternativeCardProps)
           borderRadius: "var(--sw-r-md)",
         }}
       >
-        {route.source}. 실제 경로는 ODsay 연동 후 제공됩니다.
+        {route.source.includes("fallback")
+          ? "경로 정보는 과거 데이터 기반 보조 경로입니다."
+          : "ODsay 대중교통 정보를 기반으로 제공됩니다."}
       </div>
     </div>
   );

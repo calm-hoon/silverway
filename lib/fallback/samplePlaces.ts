@@ -1,4 +1,4 @@
-// 시연용 sample 장소 목록. 실제 Kakao Local API 연동 전 또는 API 실패 시 fallback으로 사용한다.
+// fallback용 장소 목록. Kakao Local API 실패 시 대체 데이터로 사용한다.
 import type { Place } from "@/types";
 
 export const samplePlaces: Place[] = [

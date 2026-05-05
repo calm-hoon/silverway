@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type ErrorStateProps = {
   title?: string;
   description?: string;
@@ -123,7 +125,7 @@ export function ErrorState({
             {actionLabel}
           </a>
         )}
-        <a
+        <Link
           href="/"
           style={{
             display: "inline-flex",
@@ -143,7 +145,7 @@ export function ErrorState({
           }}
         >
           홈으로
-        </a>
+        </Link>
       </div>
     </div>
   );

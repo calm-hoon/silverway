@@ -36,6 +36,7 @@ export function PlaceInput({
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (query.trim().length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResults([]);
       setOpen(false);
       return;

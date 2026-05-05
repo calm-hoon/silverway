@@ -82,7 +82,6 @@ export default function HomePage() {
             }}
           >
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              <StatusPill label="Mock API" tone="muted" />
               <StatusPill label="과거 패턴 기반 예측형 혼잡도" tone="info" />
             </div>
             <ul
@@ -99,7 +98,7 @@ export default function HomePage() {
             >
               <li>운전 위험 지수는 실제 사고 가능성이 아닌 의사결정 보조용 지수입니다.</li>
               <li>혼잡도는 AFC 과거 데이터 기반 예측이며 실시간 정보가 아닙니다.</li>
-              <li>장소검색·경로 계산은 현재 Mock 상태입니다.</li>
+              <li>장소 검색 및 경로 계산은 일부 보조 데이터가 사용될 수 있습니다.</li>
               <li>면허 반납은 당사자와 가족이 함께 논의할 사항입니다.</li>
             </ul>
           </div>

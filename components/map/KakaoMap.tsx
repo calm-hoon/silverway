@@ -21,6 +21,7 @@ export function KakaoMap({
   // Step 1: Load SDK
   useEffect(() => {
     if (!apiKey) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadState("missing-key");
       return;
     }
@@ -104,6 +105,7 @@ export function KakaoMap({
         map.setBounds(bounds);
       }
     } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadState("error");
     }
   }, [loadState, origin, destination, showLine]);

@@ -258,7 +258,7 @@ curl -X POST http://localhost:3000/api/analyze \
 
 ### 작업 9
 
-- lib/fallback/samplePlaces.ts — 시연용 대전광역시 주요 장소 6곳 mock 데이터 (대전역, 정부청사역, 충남대병원 등)
+- lib/fallback/samplePlaces.ts — fallback용 대전광역시 주요 장소 6곳 예시 데이터 (대전역, 정부청사역, 충남대병원 등)
 - components/analyze/PlaceInput.tsx — 출발지/도착지 텍스트 입력 (입력 시 포커스 링, 지우기 버튼)
 - components/analyze/RecentPlaceList.tsx — 추천 장소 목록 (출발지/도착지 선택 버튼, mock 상태)
 - components/analyze/DepartureTimeSelector.tsx — 출발 시간 슬롯 선택 (오늘 오전/오후/저녁/직접 입력)
@@ -323,7 +323,7 @@ curl -X POST http://localhost:3000/api/analyze \
 - tests/supabase/analysisLogs.test.ts — 환경변수/DB 없이 실행 가능한 단위 테스트 (fallback 동작, 금지 표현, throw 없음 검증)
 
 구조:
-- 비회원 시연용 결과 저장/조회 (auth 없음)
+- 비회원 결과 저장/조회 (auth 없음)
 - Supabase 환경변수가 없거나 DB 연결 실패 시 `sampleAnalysis` fallback 자동 적용 — 화면이 깨지지 않음
 - service role key는 서버 파일에서만 사용, 클라이언트 번들에 포함되지 않음
 

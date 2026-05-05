@@ -1,5 +1,4 @@
 import { generateClaudeReport } from "@/lib/report/generateClaudeReport";
-import { generateTemplateReportFromAnalysis } from "@/lib/report/generateTemplateReport";
 import { sampleAnalysis } from "@/lib/fallback/sampleAnalysis";
 import type { AnalysisResult } from "@/types";
 

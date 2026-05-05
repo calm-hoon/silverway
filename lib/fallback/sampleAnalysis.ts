@@ -3,8 +3,8 @@ import { sampleRoute } from "./sampleRoute";
 import { sampleWeather } from "./sampleWeather";
 
 /**
- * 실제 API/DB 없이 결과 화면과 /api/analyze mock 응답에서 사용하는
- * 시연용 분석 결과 데이터. 대전광역시 맥락 예시.
+ * API/DB 없이 결과 화면과 /api/analyze fallback 응답에서 사용하는
+ * 예시 분석 결과 데이터. 대전광역시 맥락.
  */
 export const sampleAnalysis: AnalysisResult = {
   id: "sample-analysis-daejeon-001",

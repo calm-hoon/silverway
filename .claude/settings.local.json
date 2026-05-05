@@ -23,7 +23,8 @@
       "WebFetch(domain:silverway.codegenie.co.kr)",
       "Bash(curl *)",
       "Bash(grep -n \"gitignore\\\\|env.local\" .gitignore)",
-      "Bash(cat .gitignore)"
+      "Bash(cat .gitignore)",
+      "Bash(git check-ignore *)"
     ]
   }
 }

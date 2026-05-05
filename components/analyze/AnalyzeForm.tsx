@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { type Place, type AgeGroup } from "@/types";
 import { samplePlaces } from "@/lib/fallback/samplePlaces";
@@ -39,14 +39,12 @@ export function AnalyzeForm() {
   const [departureSlot, setDepartureSlot] = useState<DepartureSlot | "">("");
   const [customTime, setCustomTime] = useState("");
   const [ageGroup, setAgeGroup] = useState<AgeGroup | "">("");
-  const [recentPlaces, setRecentPlaces] = useState<Place[]>([]);
+  const [recentPlaces, setRecentPlaces] = useState<Place[]>(() =>
+    typeof window !== "undefined" ? getRecentPlaces() : []
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasFallback, setHasFallback] = useState(false);
-
-  useEffect(() => {
-    setRecentPlaces(getRecentPlaces());
-  }, []);
 
   const canSubmit =
     originPlace !== null &&
