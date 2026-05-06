@@ -70,7 +70,11 @@ export async function POST(request: Request) {
     );
     const afcStationName = subwayStep?.stationFrom ?? null;
     const departureHour = (() => {
-      try { return new Date(departureTime).getHours(); } catch { return null; }
+      try {
+        // ISO 8601에서 시간 직접 추출 — getHours()는 서버 TZ(UTC)에 따라 틀린 값을 반환할 수 있음
+        const m = String(departureTime).match(/T(\d{2}):/);
+        return m ? parseInt(m[1], 10) : null;
+      } catch { return null; }
     })();
 
     // AFC 혼잡도 조회 (routeSource=FALLBACK이어도 fallback route의 stationFrom 기준으로 조회)
