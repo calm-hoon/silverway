@@ -1,0 +1,41 @@
+[
+  {
+    "sido": "대전광역시",
+    "sigungu": "대덕구",
+    "dong": null,
+    "region_full_name": "대전광역시 대덕구",
+    "accident_count": 510,
+    "elderly_driver_count": 510,
+    "fatal_count": 9,
+    "severe_count": 97,
+    "minor_count": 625,
+    "injury_report_count": 24,
+    "day_count": 401,
+    "night_count": 109,
+    "risk_score": 100,
+    "source_year_start": 2022,
+    "source_year_end": 2024,
+    "source_file": "[TAAS] 사고분석-지역별.xlsx",
+    "raw_payload": {
+      "accident_types": {
+        "차대차 - 기타": 165,
+        "차대차 - 충돌": 200,
+        "차대사람 - 횡단중": 23,
+        "차량단독 - 기타": 5,
+        "차대차 - 추돌": 60,
+        "차대사람 - 기타": 40,
+        "차대사람 - 차도통행중": 10,
+        "차대사람 - 길가장자리구역통행중": 2,
+        "차량단독 - 충돌": 4,
+        "차대사람 - 보도통행중": 1
+      },
+      "top_violations": {
+        "안전운전불이행": 274,
+        "안전거리미확보": 62,
+        "신호위반": 60,
+        "교차로운행방법위반": 51,
+        "기타": 33
+      }
+    }
+  }
+]

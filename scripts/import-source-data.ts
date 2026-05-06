@@ -14,6 +14,20 @@ import { createClient } from "@supabase/supabase-js";
 import * as path from "path";
 import * as fs from "fs";
 
+// .env.local 자동 로드 (tsx는 Next.js와 달리 .env.local을 자동으로 읽지 않음)
+const envFile = path.join(process.cwd(), ".env.local");
+if (fs.existsSync(envFile)) {
+  for (const line of fs.readFileSync(envFile, "utf-8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const idx = trimmed.indexOf("=");
+    if (idx === -1) continue;
+    const key = trimmed.slice(0, idx).trim();
+    const val = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, "");
+    if (!process.env[key]) process.env[key] = val;
+  }
+}
+
 const PROCESSED_DIR = path.join(process.cwd(), "data", "processed");
 const BATCH_SIZE = 500;
 const SOURCE_PERIOD = "2026-03-01~2026-04-01";
@@ -90,6 +104,55 @@ async function batchInsert<T extends object>(
   return inserted;
 }
 
+// migration 001 스키마로 다운그레이드 (source_file 등 migration002 컬럼 미존재 시)
+function toAccidentAreaV1(row: Record<string, unknown>): Record<string, unknown> {
+  return {
+    sido: row.sido,
+    sigungu: row.sigungu,
+    dong: row.dong ?? null,
+    accident_count: row.accident_count ?? 0,
+    elderly_driver_count: row.elderly_driver_count ?? 0,
+    fatal_count: row.fatal_count ?? 0,
+    severe_count: row.severe_count ?? 0,
+    risk_score: row.risk_score ?? 0,
+    source_year: row.source_year_end ?? row.source_year_start ?? null,
+  };
+}
+
+function toAfcStationLoadV1(row: Record<string, unknown>): Record<string, unknown> {
+  return {
+    service_day_type: row.service_day_type ?? "WEEKDAY",
+    day_of_week: row.day_of_week ?? null,
+    direction: row.direction ?? "UP",
+    train_no: row.train_no ?? null,
+    station_name: row.station_name ?? "",
+    departure_time: row.departure_time ?? null,
+    arrival_time: row.arrival_time ?? null,
+    hour: row.hour ?? 0,
+    onboard_count: row.onboard_count ?? 0,
+    source_date: row.service_date ?? null,
+  };
+}
+
+// 단일 row probe로 스키마 버전 감지
+async function detectSchemaVersion(
+  client: ReturnType<typeof createClient>,
+  table: string,
+  v2Row: Record<string, unknown>
+): Promise<"v2" | "v1"> {
+  const { error } = await client.from(table).insert([v2Row]);
+  if (error && error.code === "PGRST204") {
+    console.log(`  [import] ${table}: migration 002 미적용 → v1 스키마로 전환`);
+    return "v1";
+  }
+  if (error) {
+    console.error(`  [import] ${table} probe 오류:`, error.code, error.hint ?? "");
+  } else {
+    // probe row 제거 (id 없이 insert됐으니 delete 불가 → 그냥 놔둠, 1건)
+  }
+  return "v2";
+}
+
 async function importAccidentAreas(client: ReturnType<typeof createClient>) {
   const rows = loadJson<Record<string, unknown>>("accident-areas.json");
   console.log(`[import] accident_areas: ${rows.length}건`);
@@ -99,13 +162,22 @@ async function importAccidentAreas(client: ReturnType<typeof createClient>) {
     return;
   }
 
-  if (CONFIRM && rows.length > 0) {
+  if (rows.length === 0) return;
+
+  // 스키마 감지: v2 row로 probe
+  const schemaVersion = await detectSchemaVersion(client, "accident_areas", rows[0]);
+  const payload = schemaVersion === "v1" ? rows.map(toAccidentAreaV1) : rows;
+
+  if (CONFIRM && schemaVersion === "v2") {
     const sourceFile = String(rows[0]["source_file"] ?? "");
     if (sourceFile) await deleteBySourceFile(client, "accident_areas", sourceFile);
   }
 
-  const inserted = await batchInsert(client, "accident_areas", rows);
-  console.log(`[import] accident_areas 완료: ${inserted}건`);
+  // probe 성공 시 rows[0]는 이미 삽입됨 — 나머지만 삽입
+  const remaining = schemaVersion === "v2" ? payload.slice(1) : payload;
+  let inserted = schemaVersion === "v2" ? 1 : 0;
+  inserted += await batchInsert(client, "accident_areas", remaining);
+  console.log(`[import] accident_areas 완료: ${inserted}건 (스키마: ${schemaVersion})`);
 }
 
 async function importAfcStationLoads(client: ReturnType<typeof createClient>) {
@@ -117,12 +189,20 @@ async function importAfcStationLoads(client: ReturnType<typeof createClient>) {
     return;
   }
 
-  if (CONFIRM) {
+  if (rows.length === 0) return;
+
+  // 스키마 감지
+  const schemaVersion = await detectSchemaVersion(client, "afc_station_loads", rows[0]);
+  const payload = schemaVersion === "v1" ? rows.map(toAfcStationLoadV1) : rows;
+
+  if (CONFIRM && schemaVersion === "v2") {
     await deleteBySourcePeriod(client, "afc_station_loads", SOURCE_PERIOD);
   }
 
-  const inserted = await batchInsert(client, "afc_station_loads", rows);
-  console.log(`[import] afc_station_loads 완료: ${inserted}건`);
+  const remaining = schemaVersion === "v2" ? payload.slice(1) : payload;
+  let inserted = schemaVersion === "v2" ? 1 : 0;
+  inserted += await batchInsert(client, "afc_station_loads", remaining);
+  console.log(`[import] afc_station_loads 완료: ${inserted}건 (스키마: ${schemaVersion})`);
 }
 
 async function importStationAliases(client: ReturnType<typeof createClient>) {

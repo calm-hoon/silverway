@@ -5,7 +5,6 @@ export type AccidentAreaData = {
   sido: string;
   sigungu: string;
   dong?: string | null;
-  region_full_name?: string | null;
   accident_count: number;
   elderly_driver_count: number;
   fatal_count: number;
@@ -20,7 +19,7 @@ type GetAccidentAreaResult =
 /** 주소 문자열에서 구 이름을 추출한다 (예: "대전 서구 둔산로 100" → "서구") */
 export function extractSigungu(address: string): string | null {
   if (!address) return null;
-  const match = address.match(/([가-힣]+구)\b/);
+  const match = address.match(/([가-힣]+구)(?=[^가-힣]|$)/);
   return match ? match[1] : null;
 }
 
@@ -32,24 +31,26 @@ export async function getAccidentAreaBySigungu(sigungu: string): Promise<GetAcci
 
   const client = createAdminClient();
   if (!client) {
+    console.error("[SilverWay] accident_areas: admin client 생성 실패 (DB_CLIENT_MISSING)");
     return { ok: false, reason: "DB_CLIENT_MISSING", source: "FALLBACK" };
   }
 
   try {
     const { data, error } = await client
       .from("accident_areas")
-      .select("sido, sigungu, dong, region_full_name, accident_count, elderly_driver_count, fatal_count, severe_count, risk_score")
+      .select("sido, sigungu, dong, accident_count, elderly_driver_count, fatal_count, severe_count, risk_score")
       .eq("sigungu", sigungu)
-      .order("source_year_end", { ascending: false })
+      .order("source_year", { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (error) {
-      console.error("[SilverWay] accident_areas 조회 실패:", error.code, error.hint ?? "");
+      console.error("[SilverWay] accident_areas 조회 실패 (DB_QUERY_FAILED):", error.code, error.message ?? "");
       return { ok: false, reason: "DB_QUERY_FAILED", source: "FALLBACK" };
     }
 
     if (!data) {
+      console.warn("[SilverWay] accident_areas 매칭 없음 (AREA_NOT_FOUND): sigungu=" + sigungu);
       return { ok: false, reason: "AREA_NOT_FOUND", source: "FALLBACK" };
     }
 
@@ -60,7 +61,6 @@ export async function getAccidentAreaBySigungu(sigungu: string): Promise<GetAcci
         sido: data.sido,
         sigungu: data.sigungu,
         dong: data.dong ?? null,
-        region_full_name: data.region_full_name ?? null,
         accident_count: data.accident_count ?? 0,
         elderly_driver_count: data.elderly_driver_count ?? 0,
         fatal_count: data.fatal_count ?? 0,

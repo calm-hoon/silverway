@@ -1,0 +1,16 @@
+{
+  "origin": {
+    "name": "\ub300\ub355\uad6c\uccad",
+    "address": "\ub300\uc804 \ub300\ub355\uad6c \ub300\uc804\ub85c1033\ubc88\uae38 20",
+    "lat": 36.3467,
+    "lng": 127.4155
+  },
+  "destination": {
+    "name": "\ub300\uc804\uc5ed",
+    "address": "\ub300\uc804 \ub3d9\uad6c \uc911\uc559\ub85c 215",
+    "lat": 36.3326,
+    "lng": 127.4344
+  },
+  "departureTime": "2026-05-05T10:00:00+09:00",
+  "ageGroup": "70s"
+}

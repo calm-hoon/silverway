@@ -56,6 +56,13 @@ export async function POST(request: Request) {
       getWeatherRisk({ lat: originLat, lng: originLng }),
       sigungu ? getAccidentAreaBySigungu(sigungu) : Promise.resolve({ ok: false as const, reason: "SIGUNGU_NOT_FOUND", source: "FALLBACK" as const }),
     ]);
+    const accidentAreaMeta = accidentAreaResult.ok
+      ? "SUPABASE"
+      : accidentAreaResult.reason === "AREA_NOT_FOUND"
+        ? "NOT_FOUND"
+        : ["DB_QUERY_FAILED", "DB_EXCEPTION", "DB_CLIENT_MISSING"].includes(accidentAreaResult.reason)
+          ? "DB_QUERY_FAILED"
+          : "FALLBACK";
 
     // 첫 번째 지하철 step에서 역명·방향·시간대 추출 (AFC 혼잡도 조회용)
     const subwayStep = transitResult.transit?.route?.steps.find(
@@ -66,7 +73,8 @@ export async function POST(request: Request) {
       try { return new Date(departureTime).getHours(); } catch { return null; }
     })();
 
-    // AFC 혼잡도 조회 (역명·시간 있을 때만)
+    // AFC 혼잡도 조회 (routeSource=FALLBACK이어도 fallback route의 stationFrom 기준으로 조회)
+    let afcCongestionSource = afcStationName === null ? "NO_SUBWAY_STEP" : "FALLBACK";
     let congestion = null;
     if (afcStationName && departureHour !== null) {
       const [afcResult, avgResult] = await Promise.all([
@@ -75,10 +83,8 @@ export async function POST(request: Request) {
       ]);
 
       if (afcResult.ok && afcResult.loads.length > 0) {
-        // 전체 평균이 DB에서 없을 땐 조회된 데이터 기준 평균 사용
         const overallAvg = avgResult ?? (afcResult.loads.reduce((s, l) => s + l.onboardCount, 0) / afcResult.loads.length);
         const paddedLoads = afcResult.loads.map((l) => ({ ...l, onboardCount: l.onboardCount }));
-        // calculateCongestion에 전체 평균을 반영하기 위해 더미 rows를 채움 — 실제 평균을 역산해 주입
         const syntheticBaseCount = Math.round(overallAvg);
         const baseLoads = Array.from({ length: 10 }, () => ({
           stationName: "__base__",
@@ -92,6 +98,9 @@ export async function POST(request: Request) {
           hour: departureHour,
           stationLoads: [...paddedLoads, ...baseLoads],
         });
+        afcCongestionSource = "SUPABASE";
+      } else {
+        afcCongestionSource = afcResult.ok ? "NO_STATION_MATCH" : "DB_QUERY_FAILED";
       }
     }
 
@@ -106,6 +115,16 @@ export async function POST(request: Request) {
       weatherRiskScore: weatherResult.weather.riskScore,
     });
 
+    const dataSources: string[] = [
+      accidentAreaResult.ok
+        ? "TAAS 사고분석 지역별 데이터"
+        : "공공데이터 기반 사고 패턴 (보조 데이터)",
+      congestion
+        ? "AFC 열차 재차인원 데이터"
+        : "AFC 과거 패턴 기반 예측형 혼잡도 (보조 데이터)",
+      "기상청 단기예보",
+    ];
+
     const mock = createMockAnalysisResult(body);
 
     const analysisData: AnalysisResult = {
@@ -116,8 +135,13 @@ export async function POST(request: Request) {
         ...transitResult.transit,
         congestion: congestion ?? transitResult.transit?.congestion ?? null,
       },
+      summary: {
+        recommendDriving: drivingRisk.level === "LOW",
+        oneLiner: `운전 위험 지수 ${drivingRisk.score}점(${drivingRisk.label})으로 분석되었습니다.`,
+      },
+      dataSources,
       fallbackFlags: {
-        analysis: true,
+        analysis: !accidentAreaResult.ok,
         route: !transitResult.ok,
         weather: !weatherResult.ok,
         report: true,
@@ -146,8 +170,8 @@ export async function POST(request: Request) {
           routeSource: transitResult.source,
           weatherSource: weatherResult.source,
           reportSource: reportResult.source,
-          accidentAreaSource: accidentAreaResult.source,
-          afcCongestionSource: congestion ? "SUPABASE" : "FALLBACK",
+          accidentAreaSource: accidentAreaMeta,
+          afcCongestionSource,
         },
         fallbackFlags: analysisData.fallbackFlags,
       });
@@ -165,8 +189,8 @@ export async function POST(request: Request) {
         routeSource: transitResult.source,
         weatherSource: weatherResult.source,
         reportSource: reportResult.source,
-        accidentAreaSource: accidentAreaResult.source,
-        afcCongestionSource: congestion ? "SUPABASE" : "FALLBACK",
+        accidentAreaSource: accidentAreaMeta,
+        afcCongestionSource,
       },
       fallbackFlags: analysisData.fallbackFlags,
     });

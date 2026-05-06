@@ -31,7 +31,45 @@
       "Bash(git *)",
       "Bash(Get-Content \"Z:/silverway/silverway/app/api/analyze/route.ts\")",
       "Bash(Get-Content \"Z:/silverway/silverway/package.json\")",
-      "Bash(Select-String \"data:\")"
+      "Bash(Select-String \"data:\")",
+      "Skill(update-config)",
+      "Bash(npx supabase *)",
+      "Bash(node -e ' *)",
+      "Bash(Start-Process -NoNewWindow powershell -ArgumentList \"-Command\", \"npm run dev > Z:/silverway/silverway/dev-server.log 2>&1\")",
+      "Bash(Start-Sleep -Seconds 5)",
+      "Bash(Write-Output \"server starting\")",
+      "Bash(echo \"PID: $!\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k: d.get\\(k\\) for k in ['ok','error']}, ensure_ascii=False\\)\\); m=d.get\\('meta',{}\\); print\\('meta:', json.dumps\\({k: m.get\\(k\\) for k in ['accidentAreaSource','afcCongestionSource']}, ensure_ascii=False\\)\\)\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('meta',{}\\), ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); m=d.get\\('meta',{}\\); print\\('ok:', d.get\\('ok'\\)\\); print\\('accidentAreaSource:', m.get\\('accidentAreaSource'\\)\\); print\\('afcCongestionSource:', m.get\\('afcCongestionSource'\\)\\)\")",
+      "Bash(node *)",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('health ok:', d.get\\('ok'\\)\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(taskkill /PID 15416 /F)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('health:', d.get\\('ok'\\)\\)\")",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(netstat *)",
+      "PowerShell(Get-Process *)",
+      "Bash(python3 -c \"import sys,json; print\\('health:', json.load\\(sys.stdin\\).get\\('ok'\\)\\)\")",
+      "Bash(curl -s http://localhost:3000/api/health)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('accidentAreaSource:', d.get\\('meta',{}\\).get\\('accidentAreaSource'\\)\\)\")"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if (Test-Path \"prompt/10.txt\") { $c = Get-Content \"prompt/10.txt\" -Raw; ConvertTo-Json @{hookSpecificOutput=@{hookEventName=\"SessionStart\";additionalContext=$c}} -Compress }",
+            "shell": "powershell",
+            "statusMessage": "prompt/10.txt 로드 중..."
+          }
+        ]
+      }
     ]
   }
 }
