@@ -215,6 +215,20 @@ describe("getTransitRoute — fetch mock 기반 테스트", () => {
       }
     });
 
+    it("error가 배열 구조([{code,msg}])이면 첫 요소를 파싱한다", async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(
+        makeJsonResponse({ error: [{ code: "-8", msg: "인증 실패" }] })
+      );
+
+      const result = await getTransitRoute(VALID_INPUT);
+
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.reason).toContain("-8");
+        expect(result.reason).not.toContain("fields: 0");
+      }
+    });
+
     it("error 객체에 code/msg가 비어 있어도 빈 문자열 reason이 되지 않는다", async () => {
       vi.mocked(fetch).mockResolvedValueOnce(
         makeJsonResponse({ error: {} })

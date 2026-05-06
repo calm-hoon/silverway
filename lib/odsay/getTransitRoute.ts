@@ -38,8 +38,14 @@ function extractOdsayError(json: Record<string, unknown>): string | null {
   // ODsay는 top-level error 또는 result.error 구조를 반환할 수 있다
   const topErr = json["error"];
   const resultErr = (json["result"] as Record<string, unknown> | undefined)?.["error"];
-  const err = (topErr && typeof topErr === "object" ? topErr : resultErr) as Record<string, unknown> | undefined;
-  if (!err) return null;
+  let raw = topErr ?? resultErr;
+  if (raw === undefined || raw === null) return null;
+
+  // ODsay가 배열로 감싼 경우: {"error": [{...}]} → 첫 요소를 사용
+  if (Array.isArray(raw)) raw = raw[0];
+  if (!raw || typeof raw !== "object") return null;
+
+  const err = raw as Record<string, unknown>;
 
   // 여러 필드명 패턴 지원: code/errorCode, msg/message/errorMessage/description
   const code = String(err["code"] ?? err["errorCode"] ?? err["error_code"] ?? "").trim();
