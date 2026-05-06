@@ -55,7 +55,12 @@
       "PowerShell(Get-Process *)",
       "Bash(python3 -c \"import sys,json; print\\('health:', json.load\\(sys.stdin\\).get\\('ok'\\)\\)\")",
       "Bash(curl -s http://localhost:3000/api/health)",
-      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('accidentAreaSource:', d.get\\('meta',{}\\).get\\('accidentAreaSource'\\)\\)\")"
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('accidentAreaSource:', d.get\\('meta',{}\\).get\\('accidentAreaSource'\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(open\\('kakao-get.json','r',encoding='utf-8'\\)\\); print\\(json.dumps\\({'ok':d.get\\('ok'\\),'mode':d.get\\('mode'\\),'count':len\\(d.get\\('data',[]\\)\\), 'first':d['data'][0] if d.get\\('data'\\) else None, 'meta':d.get\\('meta'\\)}, ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(echo \"exit:$?\")",
+      "Bash(echo \"ls-exit:$?\")",
+      "Bash(echo \"xls1:$?\")",
+      "Bash(echo \"xlsx:$?\")"
     ]
   },
   "hooks": {

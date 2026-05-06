@@ -1,0 +1,1 @@
+{"ok":true,"mode":"KMA_OR_FALLBACK","data":{"condition":"CLEAR","label":"맑음","temperatureCelsius":17,"windSpeedMs":1.4,"riskNote":"맑고 시야가 양호하여 기상 조건은 운전 위험 지수에 추가 가중치를 부여하지 않습니다.","riskScore":0,"source":"기상청 단기예보"},"meta":{"source":"KMA","fallback":false}}

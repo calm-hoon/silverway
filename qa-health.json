@@ -1,0 +1,1 @@
+{"ok":true,"service":"SilverWay","status":"ready","environment":"production","checks":{"supabaseUrl":true,"supabaseAnonKey":true,"supabaseServiceRoleKey":true,"kakaoMapKey":true,"kakaoRestApiKey":true,"odsayApiKey":true,"weatherApiKey":true,"anthropicApiKey":true},"message":"SilverWay health check is available."}
