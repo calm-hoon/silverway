@@ -9,10 +9,33 @@ function extractItems(raw: unknown): KmaForecastItem[] | null {
   return items;
 }
 
-function getEarliestSlot(items: KmaForecastItem[]): KmaForecastItem[] {
+function slotKeyToUtcMs(key: string): number {
+  // key = fcstDate(8) + fcstTime(4) = "YYYYMMDDHHMM" in KST
+  const y = parseInt(key.slice(0, 4), 10);
+  const mo = parseInt(key.slice(4, 6), 10) - 1;
+  const d = parseInt(key.slice(6, 8), 10);
+  const h = parseInt(key.slice(8, 10), 10);
+  const mi = parseInt(key.slice(10, 12), 10);
+  return Date.UTC(y, mo, d, h, mi) - 9 * 60 * 60 * 1000; // KST → UTC
+}
+
+function getTargetSlot(items: KmaForecastItem[], targetIso?: string): KmaForecastItem[] {
   const keys = [...new Set(items.map((i) => i.fcstDate + i.fcstTime))].sort();
   if (keys.length === 0) return [];
-  return items.filter((i) => i.fcstDate + i.fcstTime === keys[0]);
+
+  let bestKey = keys[0];
+  if (targetIso) {
+    try {
+      const targetMs = new Date(targetIso).getTime();
+      let bestDiff = Infinity;
+      for (const k of keys) {
+        const diff = Math.abs(slotKeyToUtcMs(k) - targetMs);
+        if (diff < bestDiff) { bestDiff = diff; bestKey = k; }
+      }
+    } catch { /* fall through to first slot */ }
+  }
+
+  return items.filter((i) => i.fcstDate + i.fcstTime === bestKey);
 }
 
 function getValue(slot: KmaForecastItem[], category: string): string | null {
@@ -64,7 +87,8 @@ function buildRiskNote(condition: WeatherCondition, riskScore: number): string {
 }
 
 // 기상청 단기예보 원본 응답 → WeatherRisk 변환. 파싱 실패 시 null 반환.
-export function normalizeWeatherForecast(raw: unknown): WeatherRisk | null {
+// targetIso: 출발 시각 ISO 8601 문자열 — 가장 가까운 예보 슬롯 선택에 사용.
+export function normalizeWeatherForecast(raw: unknown, targetIso?: string): WeatherRisk | null {
   try {
     const items = extractItems(raw);
     if (!items) return null;
@@ -74,7 +98,7 @@ export function normalizeWeatherForecast(raw: unknown): WeatherRisk | null {
     const resultCode = root.response?.header?.resultCode;
     if (resultCode && resultCode !== "00") return null;
 
-    const slot = getEarliestSlot(items);
+    const slot = getTargetSlot(items, targetIso);
     if (slot.length === 0) return null;
 
     const pty = Number(getValue(slot, "PTY") ?? 0);

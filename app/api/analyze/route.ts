@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         destinationLat: body.destination?.lat ?? sampleAnalysis.request.destination.lat,
         destinationLng: body.destination?.lng ?? sampleAnalysis.request.destination.lng,
       }),
-      getWeatherRisk({ lat: originLat, lng: originLng }),
+      getWeatherRisk({ lat: originLat, lng: originLng, baseDateTime: departureTime }),
       sigungu ? getAccidentAreaBySigungu(sigungu) : Promise.resolve({ ok: false as const, reason: "SIGUNGU_NOT_FOUND", source: "FALLBACK" as const }),
     ]);
     const accidentAreaMeta = accidentAreaResult.ok

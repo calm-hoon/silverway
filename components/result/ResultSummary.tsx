@@ -1,12 +1,13 @@
 import { type AnalysisResult } from "@/types";
-import { Badge } from "@/components/ui/Badge";
 import { Icon } from "@/components/ui/Icon";
 
 const AGE_LABEL: Record<string, string> = { "60s": "60대", "70s": "70대", "80s": "80대 이상" };
 
 function formatTime(iso: string) {
   const d = new Date(iso);
-  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+  // 서버는 UTC 타임존 → KST(+9h) 변환 후 표시
+  const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+  return `${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일 ${String(kst.getUTCHours()).padStart(2, "0")}:${String(kst.getUTCMinutes()).padStart(2, "0")}`;
 }
 
 type ResultSummaryProps = {
@@ -14,8 +15,7 @@ type ResultSummaryProps = {
 };
 
 export function ResultSummary({ analysis }: ResultSummaryProps) {
-  const { request, summary, fallbackFlags } = analysis;
-  const isFallback = fallbackFlags?.analysis;
+  const { request, summary } = analysis;
 
   return (
     <div
@@ -31,12 +31,6 @@ export function ResultSummary({ analysis }: ResultSummaryProps) {
           : "1px solid #BBF7D0",
       }}
     >
-      {/* fallback badge */}
-      {isFallback && (
-        <div>
-          <Badge variant="muted">예시 결과</Badge>
-        </div>
-      )}
 
       {/* route */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

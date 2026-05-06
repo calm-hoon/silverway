@@ -83,7 +83,7 @@ export async function getWeatherRisk(input?: WeatherRiskRequest): Promise<Weathe
 
     const json = await res.json() as unknown;
 
-    const weather = normalizeWeatherForecast(json);
+    const weather = normalizeWeatherForecast(json, input?.baseDateTime);
     if (!weather) {
       return makeFallback("no forecast data");
     }

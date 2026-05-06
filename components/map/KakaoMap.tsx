@@ -58,6 +58,13 @@ export function KakaoMap({
     document.head.appendChild(script);
   }, [apiKey]);
 
+  // Timeout: if still loading after 10s, show error (e.g. domain not whitelisted)
+  useEffect(() => {
+    if (loadState !== "loading") return;
+    const timer = setTimeout(() => setLoadState("error"), 10_000);
+    return () => clearTimeout(timer);
+  }, [loadState]);
+
   // Step 2: Init map when SDK is ready
   useEffect(() => {
     if (loadState !== "ready" || !mapRef.current || !window.kakao?.maps) return;
