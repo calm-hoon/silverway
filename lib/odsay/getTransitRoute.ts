@@ -41,12 +41,15 @@ function extractOdsayError(json: Record<string, unknown>): string | null {
   const err = (topErr && typeof topErr === "object" ? topErr : resultErr) as Record<string, unknown> | undefined;
   if (!err) return null;
 
-  const code = err["code"] != null ? String(err["code"]).trim() : "";
-  const msg = String(err["msg"] ?? err["message"] ?? "").trim();
+  // 여러 필드명 패턴 지원: code/errorCode, msg/message/errorMessage/description
+  const code = String(err["code"] ?? err["errorCode"] ?? err["error_code"] ?? "").trim();
+  const msg = String(err["msg"] ?? err["message"] ?? err["errorMessage"] ?? err["description"] ?? "").trim();
 
   if (code) return `ODSAY_API_ERROR_CODE_${code}${msg ? ` (${msg})` : ""}`;
   if (msg) return `ODSAY_API_ERROR: ${msg}`;
-  return "UNKNOWN_ODSAY_ERROR";
+  // err 객체 자체가 있지만 인식 가능한 필드 없음 — raw 구조를 reason에 포함
+  const rawKeys = Object.keys(err).join(",");
+  return rawKeys ? `UNKNOWN_ODSAY_ERROR (fields: ${rawKeys})` : "UNKNOWN_ODSAY_ERROR";
 }
 
 export async function getTransitRoute(input: OdsayRouteRequest): Promise<OdsayRouteResult> {

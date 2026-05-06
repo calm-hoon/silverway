@@ -100,7 +100,12 @@ export async function POST(request: Request) {
         });
         afcCongestionSource = "SUPABASE";
       } else {
-        afcCongestionSource = afcResult.ok ? "NO_STATION_MATCH" : "DB_QUERY_FAILED";
+        // ok=true+빈배열: 역명 매칭 없음 / ok=false: 데이터 미존재(AFC_DATA_NOT_FOUND) 또는 DB 오류
+        const isDataNotFound = !afcResult.ok && (
+          afcResult.reason === "AFC_DATA_NOT_FOUND" ||
+          afcResult.reason === "STATION_NAME_EMPTY"
+        );
+        afcCongestionSource = (afcResult.ok || isDataNotFound) ? "NO_STATION_MATCH" : "DB_QUERY_FAILED";
       }
     }
 

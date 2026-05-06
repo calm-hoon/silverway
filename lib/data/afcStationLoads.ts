@@ -7,6 +7,22 @@ type GetAfcStationLoadsResult =
   | { ok: true; loads: AfcStationLoad[]; source: "SUPABASE" }
   | { ok: false; reason: string; source: "FALLBACK" };
 
+// ODsay 역명 → AFC DB 역명 변환: station_aliases 조회 후 없으면 "역" suffix 정규화
+async function resolveAfcStationName(
+  client: NonNullable<ReturnType<typeof createAdminClient>>,
+  odsayName: string
+): Promise<string> {
+  try {
+    const { data } = await client
+      .from("station_aliases")
+      .select("afc_station_name")
+      .eq("odsay_station_name", odsayName)
+      .maybeSingle() as { data: { afc_station_name: string } | null };
+    if (data?.afc_station_name) return String(data.afc_station_name);
+  } catch { /* fall through to normalization */ }
+  return odsayName.endsWith("역") ? odsayName : odsayName + "역";
+}
+
 /** 역명 + 시간대 기준 AFC 재차인원 조회 (과거 패턴 기반 예측형 혼잡도용) */
 export async function getAfcStationLoads(params: {
   stationName: string;
@@ -24,11 +40,13 @@ export async function getAfcStationLoads(params: {
     return { ok: false, reason: "DB_CLIENT_MISSING", source: "FALLBACK" };
   }
 
+  const resolvedName = await resolveAfcStationName(client, stationName);
+
   try {
     let query = client
       .from("afc_station_loads")
       .select("station_name, hour, direction, onboard_count, service_day_type")
-      .eq("station_name", stationName)
+      .eq("station_name", resolvedName)
       .eq("hour", hour);
 
     if (direction) {
