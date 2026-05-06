@@ -14,8 +14,9 @@ function makeFallback(reason: string): OdsayRouteResult {
   return { ok: false, transit: sampleRoute, source: "FALLBACK", reason };
 }
 
-// ODsay API key의 Base64 특수문자(+, /, =)가 URLSearchParams로 퍼센트 인코딩되면
-// 일부 서버에서 복호화 실패가 발생할 수 있으므로, 파라미터를 직접 조합한다.
+// ODsay는 apiKey를 raw 문자열로 검증한다.
+// encodeURIComponent로 인코딩하면 Base64 특수문자(+→%2B, /→%2F, =→%3D)가
+// 서버 측 복호화에 실패할 수 있으므로 raw로 그대로 전달한다.
 function buildOdsayUrl(
   originLng: number,
   originLat: number,
@@ -28,7 +29,7 @@ function buildOdsayUrl(
     `SY=${originLat}`,
     `EX=${destinationLng}`,
     `EY=${destinationLat}`,
-    `apiKey=${encodeURIComponent(apiKey)}`,
+    `apiKey=${apiKey}`,
   ].join("&");
   return `${ODSAY_ENDPOINT}?${params}`;
 }
@@ -41,9 +42,7 @@ function extractOdsayError(json: Record<string, unknown>): string | null {
   if (!err) return null;
 
   const code = err["code"] != null ? String(err["code"]).trim() : "";
-  const msg = (err["msg"] ?? err["message"] ?? err["msg"] ?? "") != null
-    ? String(err["msg"] ?? err["message"] ?? "").trim()
-    : "";
+  const msg = String(err["msg"] ?? err["message"] ?? "").trim();
 
   if (code) return `ODSAY_API_ERROR_CODE_${code}${msg ? ` (${msg})` : ""}`;
   if (msg) return `ODSAY_API_ERROR: ${msg}`;
@@ -84,8 +83,10 @@ export async function getTransitRoute(input: OdsayRouteRequest): Promise<OdsayRo
     }
 
     if (!res.ok) {
+      let errBody = "";
+      try { errBody = (await res.text()).slice(0, 200); } catch { /* ignore */ }
       const reason = `ODSAY_HTTP_ERROR_STATUS_${res.status}`;
-      console.warn("[ODsay] HTTP error:", res.status);
+      console.warn("[ODsay] HTTP error:", res.status, errBody ? `| ${errBody}` : "");
       return makeFallback(reason);
     }
 
