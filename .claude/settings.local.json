@@ -61,7 +61,10 @@
       "Bash(echo \"ls-exit:$?\")",
       "Bash(echo \"xls1:$?\")",
       "Bash(echo \"xlsx:$?\")",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(python -m json.tool)",
+      "Bash(Start-Sleep -Seconds 30)",
+      "Bash(Select-String -Pattern \"source|reason|routeSource\")"
     ]
   },
   "hooks": {

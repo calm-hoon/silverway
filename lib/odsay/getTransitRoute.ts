@@ -14,9 +14,6 @@ function makeFallback(reason: string): OdsayRouteResult {
   return { ok: false, transit: sampleRoute, source: "FALLBACK", reason };
 }
 
-// ODsay는 apiKey를 raw 문자열로 검증한다.
-// encodeURIComponent로 인코딩하면 Base64 특수문자(+→%2B, /→%2F, =→%3D)가
-// 서버 측 복호화에 실패할 수 있으므로 raw로 그대로 전달한다.
 function buildOdsayUrl(
   originLng: number,
   originLat: number,
@@ -29,7 +26,7 @@ function buildOdsayUrl(
     `SY=${originLat}`,
     `EX=${destinationLng}`,
     `EY=${destinationLat}`,
-    `apiKey=${apiKey}`,
+    `apiKey=${encodeURIComponent(apiKey)}`,
   ].join("&");
   return `${ODSAY_ENDPOINT}?${params}`;
 }
