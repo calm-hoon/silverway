@@ -99,16 +99,37 @@ function buildBody(input: GenerateTemplateReportInput): string {
 
 function buildFamilyMessage(input: GenerateTemplateReportInput): string {
   const { originName, destinationName, drivingRisk, transit } = input;
-  const route = [originName, destinationName].filter(Boolean).join(" → ");
-  const riskText = drivingRisk
-    ? `운전 위험 지수가 ${drivingRisk.label} 수준으로 나타났습니다.`
-    : "이동 분석을 완료했습니다.";
+
+  const destText = destinationName ? `${destinationName}` : "목적지";
+  const level = drivingRisk?.level;
+
+  // 위험도별 따뜻한 도입 문구
+  let opener: string;
+  if (level === "HIGH") {
+    opener = `오늘 ${destText} 가시는 길, 가능하면 대중교통이나 동행을 함께 검토해보시면 어떨까요?`;
+  } else if (level === "MEDIUM") {
+    opener = `오늘 ${destText} 가시는 길 잘 준비되셨어요?`;
+  } else {
+    opener = `오늘 ${destText} 가시는 길 편안하게 다녀오세요.`;
+  }
+
+  // 대중교통 안내
   const transitText =
     transit?.available && transit.route
-      ? ` 대중교통으로 약 ${transit.route.totalDurationMin}분 내 이동 가능합니다.`
+      ? ` 지하철이나 버스로 약 ${transit.route.totalDurationMin}분이면 가실 수 있어요.`
       : "";
-  const routeText = route ? `${route} 이동 시 ` : "";
-  return `${routeText}${riskText}${transitText} 이동 전 컨디션과 날씨를 함께 확인해보면 좋겠습니다.`;
+
+  // 마무리 감성 문구
+  const closer = level === "HIGH"
+    ? " 출발하시기 전에 연락 한 번 주세요~ 같이 방법 찾아볼게요."
+    : " 출발 전에 날씨 한 번 확인하시고, 편안하게 다녀오세요.";
+
+  // originName이 있으면 경로 맥락 추가
+  const routeContext = originName && destinationName
+    ? ` (${originName} → ${destinationName})`
+    : "";
+
+  return `${opener}${transitText}${routeContext ? ` 오늘 이동 경로${routeContext}를 살펴봤어요.` : ""}${closer}`;
 }
 
 export function generateTemplateReport(input: GenerateTemplateReportInput): ReportContent {

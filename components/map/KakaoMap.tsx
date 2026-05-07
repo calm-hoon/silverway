@@ -21,18 +21,17 @@ export function KakaoMap({
   // Step 1: Load SDK
   useEffect(() => {
     if (!apiKey) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadState("missing-key");
       return;
     }
 
-    // Already initialized
-    if (typeof window !== "undefined" && window.kakao?.maps) {
+    // Already initialized — kakao.maps namespace exists
+    if (window.kakao?.maps) {
       window.kakao.maps.load(() => setLoadState("ready"));
       return;
     }
 
-    // Script already in DOM
+    // Script already in DOM but not yet loaded
     const existing = document.getElementById(SDK_SCRIPT_ID) as HTMLScriptElement | null;
     if (existing) {
       setLoadState("loading");
@@ -46,19 +45,19 @@ export function KakaoMap({
     setLoadState("loading");
     const script = document.createElement("script");
     script.id = SDK_SCRIPT_ID;
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(apiKey)}&autoload=false`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`;
     script.onload = () => {
-      try {
-        window.kakao?.maps?.load(() => setLoadState("ready"));
-      } catch {
+      if (!window.kakao?.maps) {
         setLoadState("error");
+        return;
       }
+      window.kakao.maps.load(() => setLoadState("ready"));
     };
     script.onerror = () => setLoadState("error");
     document.head.appendChild(script);
   }, [apiKey]);
 
-  // Timeout: if still loading after 10s, show error (e.g. domain not whitelisted)
+  // Timeout: if still loading after 10s, show error
   useEffect(() => {
     if (loadState !== "loading") return;
     const timer = setTimeout(() => setLoadState("error"), 10_000);
@@ -112,7 +111,6 @@ export function KakaoMap({
         map.setBounds(bounds);
       }
     } catch {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadState("error");
     }
   }, [loadState, origin, destination, showLine]);

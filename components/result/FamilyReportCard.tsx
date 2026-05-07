@@ -31,68 +31,84 @@ export function FamilyReportCard({ report }: FamilyReportCardProps) {
         overflow: "hidden",
       }}
     >
-      {/* accent bar */}
-      <div style={{ height: 4, background: "var(--sw-accent)" }} />
+      {/* 상단 그라데이션 띠 */}
+      <div
+        style={{
+          height: 5,
+          background: "linear-gradient(90deg, var(--sw-accent) 0%, var(--sw-primary) 100%)",
+        }}
+      />
 
       <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* header */}
-        <div>
+        {/* 헤더 */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
-              fontSize: "var(--sw-fs-xs)",
-              fontWeight: "var(--sw-fw-bold)",
-              color: "var(--sw-ink-3)",
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-              marginBottom: 6,
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              background: "var(--sw-accent-50)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            가족 공유용 리포트
+            {/* 하트 아이콘 */}
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#9C5D2E"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
           </div>
-          <div
-            style={{
-              fontSize: "var(--sw-fs-md)",
-              fontWeight: "var(--sw-fw-bold)",
-              color: "var(--sw-ink)",
-              lineHeight: 1.3,
-            }}
-          >
-            {report.title}
+          <div>
+            <div
+              style={{
+                fontSize: "var(--sw-fs-md)",
+                fontWeight: "var(--sw-fw-bold)",
+                color: "var(--sw-ink)",
+                lineHeight: 1.2,
+              }}
+            >
+              가족에게 전하기
+            </div>
+            <div
+              style={{
+                fontSize: 12,
+                color: "var(--sw-ink-3)",
+                marginTop: 2,
+              }}
+            >
+              편하게 대화 꺼낼 수 있는 문구예요
+            </div>
           </div>
         </div>
 
-        {/* tone note */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "8px 12px",
-            background: "var(--sw-accent-50)",
-            borderRadius: "var(--sw-r-md)",
-            fontSize: 13,
-            color: "#9C5D2E",
-            lineHeight: 1.5,
-          }}
-        >
-          <Icon name="shield" size={16} color="#9C5D2E" />
-          <span>면허 반납을 어색하지 않게 꺼낼 수 있는 대화의 시작점이에요.</span>
-        </div>
-
-        {/* summary */}
+        {/* 요약 */}
         {report.summary && (
           <div
             style={{
               fontSize: "var(--sw-fs-sm)",
               color: "var(--sw-ink-2)",
               lineHeight: 1.65,
+              padding: "10px 14px",
+              background: "var(--sw-paper)",
+              borderRadius: "var(--sw-r-md)",
             }}
           >
             {report.summary}
           </div>
         )}
 
-        {/* recommendation */}
+        {/* 권장 안내 */}
         {report.recommendation && (
           <div
             style={{
@@ -109,33 +125,41 @@ export function FamilyReportCard({ report }: FamilyReportCardProps) {
           </div>
         )}
 
-        {/* family message */}
+        {/* 가족 메시지 — 카드/편지 스타일 */}
         <div
           style={{
-            background: "var(--sw-paper-elev)",
+            background: "linear-gradient(135deg, #FFF9F2 0%, #FFF4EA 100%)",
             borderRadius: "var(--sw-r-lg)",
-            padding: "16px",
-            border: "1px solid var(--sw-hairline)",
+            padding: "18px 16px",
+            border: "1px solid #F5DBBE",
+            position: "relative",
           }}
         >
+          {/* 따옴표 장식 */}
           <div
             style={{
-              fontSize: 12,
-              fontWeight: "var(--sw-fw-bold)",
-              color: "var(--sw-ink-3)",
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-              marginBottom: 10,
+              position: "absolute",
+              top: 10,
+              left: 14,
+              fontSize: 32,
+              lineHeight: 1,
+              color: "#E8C99A",
+              fontFamily: "Georgia, serif",
+              userSelect: "none",
             }}
+            aria-hidden="true"
           >
-            가족에게 보낼 문구
+            &#8220;
           </div>
+
           <div
             style={{
               fontSize: "var(--sw-fs-base)",
-              color: "var(--sw-ink)",
-              lineHeight: 1.75,
+              color: "#5C3D1E",
+              lineHeight: 1.8,
               whiteSpace: "pre-wrap",
+              paddingTop: 18,
+              paddingLeft: 8,
             }}
           >
             {report.familyMessage}
@@ -145,14 +169,14 @@ export function FamilyReportCard({ report }: FamilyReportCardProps) {
             type="button"
             onClick={() => void handleCopy()}
             style={{
-              marginTop: 14,
+              marginTop: 16,
               display: "flex",
               alignItems: "center",
               gap: 8,
-              padding: "10px 16px",
-              background: copied ? "var(--sw-safe-bg)" : "var(--sw-primary-50)",
-              color: copied ? "#166534" : "var(--sw-primary)",
-              border: "none",
+              padding: "10px 18px",
+              background: copied ? "#D1FAE5" : "#FFF",
+              color: copied ? "#065F46" : "#9C5D2E",
+              border: `1.5px solid ${copied ? "#6EE7B7" : "#E8C99A"}`,
               borderRadius: "var(--sw-r-md)",
               fontSize: "var(--sw-fs-sm)",
               fontWeight: "var(--sw-fw-bold)",
@@ -160,18 +184,19 @@ export function FamilyReportCard({ report }: FamilyReportCardProps) {
               cursor: "pointer",
               transition: "all var(--sw-d-fast) var(--sw-ease)",
               minHeight: 44,
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
             }}
           >
             <Icon
               name={copied ? "check" : "share"}
               size={18}
-              color={copied ? "#166534" : "var(--sw-primary)"}
+              color={copied ? "#065F46" : "#9C5D2E"}
             />
             {copied ? "복사되었습니다!" : "문구 복사하기"}
           </button>
         </div>
 
-        {/* cautions */}
+        {/* 면책 문구 */}
         {report.cautions && report.cautions.length > 0 && (
           <div
             style={{
