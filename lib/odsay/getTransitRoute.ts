@@ -83,7 +83,13 @@ export async function getTransitRoute(input: OdsayRouteRequest): Promise<OdsayRo
   try {
     let res: Response;
     try {
-      res = await fetch(fetchUrl, { signal: controller.signal });
+      res = await fetch(fetchUrl, {
+        signal: controller.signal,
+        headers: {
+          "Referer": "https://silverway.codegenie.co.kr/",
+          "User-Agent": "Mozilla/5.0",
+        },
+      });
     } finally {
       clearTimeout(timer);
     }

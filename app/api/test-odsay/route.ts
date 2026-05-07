@@ -19,7 +19,13 @@ export async function GET() {
   let odsayRaw: unknown = null;
   let httpStatus: number | null = null;
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(8000),
+      headers: {
+        "Referer": "https://silverway.codegenie.co.kr/",
+        "User-Agent": "Mozilla/5.0",
+      },
+    });
     httpStatus = res.status;
     odsayRaw = await res.json();
   } catch (e) {
