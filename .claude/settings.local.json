@@ -60,7 +60,8 @@
       "Bash(echo \"exit:$?\")",
       "Bash(echo \"ls-exit:$?\")",
       "Bash(echo \"xls1:$?\")",
-      "Bash(echo \"xlsx:$?\")"
+      "Bash(echo \"xlsx:$?\")",
+      "Bash(npx playwright *)"
     ]
   },
   "hooks": {

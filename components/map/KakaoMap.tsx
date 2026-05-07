@@ -15,6 +15,7 @@ export function KakaoMap({
 }: KakaoMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [loadState, setLoadState] = useState<MapLoadState>("idle");
+  const [errorReason, setErrorReason] = useState<string | undefined>();
 
   const apiKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
 
@@ -53,7 +54,10 @@ export function KakaoMap({
       }
       window.kakao.maps.load(() => setLoadState("ready"));
     };
-    script.onerror = () => setLoadState("error");
+    script.onerror = () => {
+      setErrorReason("Kakao Maps 도메인 미등록 — developers.kakao.com → 플랫폼 → Web에 현재 도메인(예: http://localhost) 추가 필요");
+      setLoadState("error");
+    };
     document.head.appendChild(script);
   }, [apiKey]);
 
@@ -119,7 +123,7 @@ export function KakaoMap({
     return <MapFallback reason="key" height={height} />;
   }
   if (loadState === "error") {
-    return <MapFallback reason="error" height={height} />;
+    return <MapFallback reason="error" height={height} devHint={errorReason} />;
   }
 
   return (

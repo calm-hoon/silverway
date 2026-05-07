@@ -1,12 +1,15 @@
 type MapFallbackProps = {
   reason?: "key" | "error" | "no-coords" | "generic";
   height?: number | string;
+  devHint?: string;
 };
 
-export function MapFallback({ reason = "generic", height = 200 }: MapFallbackProps) {
+export function MapFallback({ reason = "generic", height = 200, devHint }: MapFallbackProps) {
   const message =
     reason === "no-coords"
       ? "출발지와 도착지 좌표가 확보되면 지도에 표시됩니다."
+      : reason === "key"
+      ? "Kakao Maps 키가 설정되지 않았습니다. 환경 변수를 확인해주세요."
       : "지도를 불러오지 못해도 분석 결과는 계속 확인할 수 있습니다.";
 
   return (
@@ -48,6 +51,23 @@ export function MapFallback({ reason = "generic", height = 200 }: MapFallbackPro
       >
         {message}
       </div>
+      {devHint && process.env.NODE_ENV === "development" && (
+        <div
+          style={{
+            fontSize: 11,
+            color: "#B45309",
+            background: "#FEF3C7",
+            border: "1px solid #FCD34D",
+            borderRadius: 6,
+            padding: "6px 10px",
+            textAlign: "center",
+            lineHeight: 1.5,
+            maxWidth: 280,
+          }}
+        >
+          {devHint}
+        </div>
+      )}
     </div>
   );
 }
