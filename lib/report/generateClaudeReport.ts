@@ -17,41 +17,35 @@ const CLAUDE_TIMEOUT_MS = 15_000;
 const MODEL = "claude-haiku-4-5-20251001";
 
 function buildPrompt(analysis: AnalysisResult): string {
-  const { request, drivingRisk, transit, weather } = analysis;
+  const { request, drivingRisk, transit, weather, summary } = analysis;
 
-  const routeText = `${request.origin.name ?? "출발지"} → ${request.destination.name ?? "도착지"}`;
   const factorText = drivingRisk.factors.slice(0, 3).map((f) => f.label).join(", ");
   const transitText = transit.available && transit.route
-    ? `대중교통: 약 ${transit.route.totalDurationMin}분, 환승 ${transit.route.transferCount}회`
+    ? `약 ${transit.route.totalDurationMin}분, 환승 ${transit.route.transferCount}회`
     : "대중교통 경로 없음";
-  const weatherText = weather
-    ? `기상: ${weather.label}`
-    : "";
+  const congestionText = transit.congestion?.label ?? "정보 없음";
+  const recommendationText = summary.recommendDriving ? "운전 권장" : "대중교통 권장";
+  const weatherText = weather?.label ?? "";
 
-  return `당신은 고령 운전자의 이동 의사결정을 돕는 따뜻한 가족 안내 AI입니다.
-아래 분석 데이터를 바탕으로, 자녀가 부모님께 드리는 따뜻한 이동 안내 리포트를 한국어로 작성해주세요.
+  return `당신은 40~50대 자녀가 고령 부모님께 보내는 따뜻한 편지를 대신 작성하는 도우미입니다.
+분석 결과를 바탕으로 부모님께 운전 부담과 대중교통 대안을 부드럽게 전달하세요.
 
 분석 데이터:
-- 이동 경로: ${routeText}
-- 연령대: ${request.ageGroup ?? "미지정"}
-- 운전 위험 지수: ${drivingRisk.score}점 (${drivingRisk.label})
-- 주요 고려 요인: ${factorText || "없음"}
-- ${transitText}
-- ${weatherText}
+- 출발지: ${request.origin.name ?? "출발지"}
+- 도착지: ${request.destination.name ?? "도착지"}
+- 출발시간: ${request.departureTime}
+- 운전 위험도: ${drivingRisk.score}/100
+- 위험도 등급: ${drivingRisk.label}
+- 위험 요인: ${factorText || "없음"}
+- 대중교통 대안: ${transitText}
+- 혼잡도: ${congestionText}
+- 추천 판단: ${recommendationText}
+- 기상: ${weatherText}
 
 반드시 지켜야 할 원칙:
 1. 위험도는 반드시 "운전 위험 지수"로만 표현한다. "사고 확률", "예측 확률" 표현 금지.
 2. 혼잡도는 "과거 패턴 기반 예측형 혼잡도"로만 표현한다.
-3. "운전 금지", "반드시 반납" 같은 강압적 표현 금지.
-4. 이 분석은 의사결정 보조 안내이지 실제 사고 가능성을 의미하지 않는다고 명시한다.
-
-【familyMessage 작성 특별 지침】
-- 자녀가 부모님께 직접 전하는 따뜻한 문자 메시지처럼 써주세요
-- 데이터 수치를 나열하지 말고, 마음이 담긴 말로 표현하세요
-- "걱정 마시고", "편하게", "안전하게" 같은 감성 표현 적극 활용
-- 2~3문장, 구어체 존댓말 (예: "~해보세요", "~어떠세요?", "~드릴게요")
-- 부모님의 자립심을 존중하면서도 가족의 관심이 느껴지도록
-- 예시 느낌: "오늘 이동 잘 준비되셨어요? 지하철 타시면 훨씬 편하실 것 같아요. 출발하시기 전에 연락 한 번 주세요~"
+3. 이 분석은 의사결정 보조 안내이지 실제 사고 가능성을 의미하지 않는다고 명시한다.
 
 아래 JSON 형식으로만 응답해주세요:
 {
@@ -59,8 +53,18 @@ function buildPrompt(analysis: AnalysisResult): string {
   "summary": "핵심 요약 (한 줄, 80자 이내, 안심시키는 톤)",
   "recommendation": "권장 행동 안내 (2~3문장, 데이터 기반이지만 따뜻하게)",
   "body": "상세 안내 본문 (3~5문장)",
-  "familyMessage": "자녀가 부모님께 보내는 따뜻한 메시지 (2~3문장, 구어체 존댓말, 감성적으로)"
-}`;
+  "familyMessage": "아래 규칙에 따라 작성한 편지 본문"
+}
+
+familyMessage 작성 규칙:
+- "부모님께"로 시작하는 편지 형식, 존댓말
+- 5~8문장
+- "운전하지 마세요", "면허 반납하세요", "위험합니다" 표현 금지
+- 부드러운 표현 사용: "운전 부담이 조금 큰 편이에요", "대중교통이 더 안전해 보여요"
+- 면허 반납은 "이동 포기"가 아닌 "더 안전한 이동 방법 선택"으로 표현
+- 자녀가 함께 챙기겠다는 문장 포함
+- 마지막은 "사랑하는 가족이" 또는 "사랑을 담아"로 끝냄
+- 편지 본문만 작성 (제목·날짜·서명란 제외)`;
 }
 
 function fallback(analysis: AnalysisResult, reason: string): ClaudeReportResult {
