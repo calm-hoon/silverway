@@ -1,6 +1,6 @@
 import type { AnalysisResult } from "@/types";
 import { createMapPointFromPlace, isValidCoordinate } from "./mapUtils";
-import { LeafletMap } from "./LeafletMap";
+import { KakaoMap } from "./KakaoMap";
 import { MapFallback } from "./MapFallback";
 import { MapLegend } from "./MapLegend";
 
@@ -43,7 +43,7 @@ export function MapSection({ analysis }: MapSectionProps) {
 
       {/* Map or fallback */}
       {hasCoords ? (
-        <LeafletMap
+        <KakaoMap
           origin={originPoint ?? undefined}
           destination={destPoint ?? undefined}
           showLine
