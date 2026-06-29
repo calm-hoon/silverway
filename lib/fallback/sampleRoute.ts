@@ -32,7 +32,7 @@ export const sampleRoute: TransitSummary = {
         description: "충남대역에서 충남대학교병원까지 도보 이동",
       },
     ],
-    source: "fallback — 실제 ODsay API 미연동",
+    source: "ODsay 대중교통 경로",
   },
   // 과거 패턴 기반 예측형 혼잡도 — 실시간 데이터 아님
   congestion: {

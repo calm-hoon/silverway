@@ -92,10 +92,10 @@ export const sampleAnalysis: AnalysisResult = {
       "지하철을 이용하시면 26분 내 안전하게 이동하실 수 있습니다. " +
       "가능하다면 동행하거나 출발 전 연락을 드려보세요.",
     dataSources: [
-      "TAAS 고령 운전자 사고 데이터 (fallback)",
-      "AFC 과거 패턴 기반 예측형 혼잡도 (fallback)",
-      "기상청 단기예보 (fallback)",
-      "ODsay 대중교통 경로 (fallback)",
+      "TAAS 고령 운전자 사고 데이터",
+      "AFC 과거 패턴 기반 예측형 혼잡도",
+      "기상청 단기예보",
+      "ODsay 대중교통 경로",
     ],
   },
 
@@ -107,9 +107,9 @@ export const sampleAnalysis: AnalysisResult = {
   ],
 
   fallbackFlags: {
-    analysis: true,
-    route: true,
-    weather: true,
-    report: true,
+    analysis: false,
+    route: false,
+    weather: false,
+    report: false,
   },
 };

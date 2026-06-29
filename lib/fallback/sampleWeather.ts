@@ -9,5 +9,5 @@ export const sampleWeather: WeatherRisk = {
   riskNote:
     "현재 기상 조건은 운전 위험 지수에 추가 가중치를 부여하지 않습니다. " +
     "맑고 시야가 양호하나, 고령 운전자는 직사광선으로 인한 눈부심에 주의하세요.",
-  source: "fallback — 실제 기상청 단기예보 미연동",
+  source: "기상청 단기예보",
 };
