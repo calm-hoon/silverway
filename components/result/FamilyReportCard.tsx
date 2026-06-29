@@ -78,7 +78,7 @@ export function FamilyReportCard({ report }: FamilyReportCardProps) {
                 lineHeight: 1.2,
               }}
             >
-              가족에게 전하기
+              AI 분석 리포트
             </div>
             <div
               style={{
@@ -87,7 +87,7 @@ export function FamilyReportCard({ report }: FamilyReportCardProps) {
                 marginTop: 2,
               }}
             >
-              편하게 대화 꺼낼 수 있는 문구예요
+              공공데이터 분석 결과를 AI가 가족 언어로 해석했어요
             </div>
           </div>
         </div>
