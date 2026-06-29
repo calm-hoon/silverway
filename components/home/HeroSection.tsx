@@ -35,8 +35,8 @@ export function HeroSection() {
             letterSpacing: "-0.015em",
           }}
         >
-          AI 기반 고령자 이동 및<br />
-          면허 반납 의사결정 지원
+          부모님 이동,<br />
+          데이터로 함께 결정하세요
         </h1>
         <p
           style={{
@@ -46,8 +46,8 @@ export function HeroSection() {
             opacity: 0.88,
           }}
         >
-          공공데이터 기반 운전 위험 지수와 대중교통 대안을<br />
-          함께 확인하세요.
+          공공데이터 사고 패턴·날씨·혼잡도를 조합해<br />
+          운전 부담을 수치로 확인하고 대중교통 대안을 찾아드려요.
         </p>
       </div>
 
