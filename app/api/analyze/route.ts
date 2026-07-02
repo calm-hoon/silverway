@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import { createMockAnalysisResult } from "@/lib/fallback/createMockAnalysisResult";
 import { sampleAnalysis } from "@/lib/fallback/sampleAnalysis";
 import { saveAnalysisLog } from "@/lib/supabase/analysisLogs";

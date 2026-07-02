@@ -3,6 +3,8 @@ import { getAnalysisLogById } from "@/lib/supabase/analysisLogs";
 import { Icon } from "@/components/ui/Icon";
 import { ResultFallbackNotice } from "@/components/result/ResultFallbackNotice";
 import { ResultPageView } from "@/components/result/ResultPageView";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type ResultDetailPageProps = {
   params: Promise<{ id: string }>;
