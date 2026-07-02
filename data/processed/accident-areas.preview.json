@@ -4,37 +4,192 @@
     "sigungu": "대덕구",
     "dong": null,
     "region_full_name": "대전광역시 대덕구",
-    "accident_count": 510,
-    "elderly_driver_count": 510,
-    "fatal_count": 9,
-    "severe_count": 97,
-    "minor_count": 625,
-    "injury_report_count": 24,
-    "day_count": 401,
-    "night_count": 109,
-    "risk_score": 100,
-    "source_year_start": 2022,
-    "source_year_end": 2024,
-    "source_file": "[TAAS] 사고분석-지역별.xlsx",
+    "accident_count": 185,
+    "elderly_driver_count": 185,
+    "fatal_count": 4,
+    "severe_count": 49,
+    "minor_count": 206,
+    "injury_report_count": 2,
+    "day_count": 142,
+    "night_count": 43,
+    "risk_score": 27,
+    "source_year_start": 2025,
+    "source_year_end": 2025,
+    "source_file": "TAAS 25년 사망,중상,경상 노인운전자 사고.xlsx",
     "raw_payload": {
       "accident_types": {
-        "차대차 - 기타": 165,
-        "차대차 - 충돌": 200,
-        "차대사람 - 횡단중": 23,
-        "차량단독 - 기타": 5,
-        "차대차 - 추돌": 60,
-        "차대사람 - 기타": 40,
-        "차대사람 - 차도통행중": 10,
-        "차대사람 - 길가장자리구역통행중": 2,
-        "차량단독 - 충돌": 4,
-        "차대사람 - 보도통행중": 1
+        "차대차 - 기타": 64,
+        "차대차 - 충돌": 79,
+        "차대사람 - 기타": 10,
+        "차대사람 - 차도통행중": 3,
+        "차대차 - 추돌": 16,
+        "차량단독 - 충돌": 1,
+        "차량단독 - 기타": 3,
+        "차대사람 - 보도통행중": 1,
+        "차대사람 - 횡단중": 6,
+        "차량단독 - 도로외이탈 - 추락": 1,
+        "차대사람 - 길가장자리구역통행중": 1
       },
       "top_violations": {
-        "안전운전불이행": 274,
+        "안전운전불이행": 99,
+        "안전거리미확보": 31,
+        "신호위반": 30,
+        "교차로운행방법위반": 15,
+        "보행자보호의무위반": 4
+      }
+    }
+  },
+  {
+    "sido": "대전광역시",
+    "sigungu": "서구",
+    "dong": null,
+    "region_full_name": "대전광역시 서구",
+    "accident_count": 517,
+    "elderly_driver_count": 517,
+    "fatal_count": 2,
+    "severe_count": 106,
+    "minor_count": 645,
+    "injury_report_count": 7,
+    "day_count": 388,
+    "night_count": 129,
+    "risk_score": 67,
+    "source_year_start": 2025,
+    "source_year_end": 2025,
+    "source_file": "TAAS 25년 사망,중상,경상 노인운전자 사고.xlsx",
+    "raw_payload": {
+      "accident_types": {
+        "차대차 - 기타": 120,
+        "차대차 - 충돌": 227,
+        "차대사람 - 기타": 37,
+        "차대사람 - 보도통행중": 3,
+        "차대차 - 추돌": 68,
+        "차량단독 - 기타": 8,
+        "차대사람 - 횡단중": 40,
+        "차대사람 - 차도통행중": 5,
+        "차대사람 - 길가장자리구역통행중": 5,
+        "차량단독 - 충돌": 2,
+        "차량단독 - 전도전복": 2
+      },
+      "top_violations": {
+        "안전운전불이행": 282,
+        "안전거리미확보": 71,
+        "신호위반": 71,
+        "교차로운행방법위반": 33,
+        "보행자보호의무위반": 29
+      }
+    }
+  },
+  {
+    "sido": "대전광역시",
+    "sigungu": "중구",
+    "dong": null,
+    "region_full_name": "대전광역시 중구",
+    "accident_count": 335,
+    "elderly_driver_count": 335,
+    "fatal_count": 3,
+    "severe_count": 59,
+    "minor_count": 404,
+    "injury_report_count": 0,
+    "day_count": 254,
+    "night_count": 81,
+    "risk_score": 42,
+    "source_year_start": 2025,
+    "source_year_end": 2025,
+    "source_file": "TAAS 25년 사망,중상,경상 노인운전자 사고.xlsx",
+    "raw_payload": {
+      "accident_types": {
+        "차대차 - 기타": 103,
+        "차대사람 - 기타": 28,
+        "차대차 - 충돌": 154,
+        "차대차 - 추돌": 28,
+        "차대사람 - 횡단중": 16,
+        "차대사람 - 길가장자리구역통행중": 2,
+        "차대사람 - 차도통행중": 4
+      },
+      "top_violations": {
+        "안전운전불이행": 163,
         "안전거리미확보": 62,
-        "신호위반": 60,
-        "교차로운행방법위반": 51,
-        "기타": 33
+        "신호위반": 44,
+        "기타": 23,
+        "교차로운행방법위반": 20
+      }
+    }
+  },
+  {
+    "sido": "대전광역시",
+    "sigungu": "유성구",
+    "dong": null,
+    "region_full_name": "대전광역시 유성구",
+    "accident_count": 322,
+    "elderly_driver_count": 322,
+    "fatal_count": 0,
+    "severe_count": 59,
+    "minor_count": 396,
+    "injury_report_count": 5,
+    "day_count": 234,
+    "night_count": 88,
+    "risk_score": 41,
+    "source_year_start": 2025,
+    "source_year_end": 2025,
+    "source_file": "TAAS 25년 사망,중상,경상 노인운전자 사고.xlsx",
+    "raw_payload": {
+      "accident_types": {
+        "차대차 - 기타": 143,
+        "차대차 - 충돌": 95,
+        "차대차 - 추돌": 41,
+        "차대사람 - 길가장자리구역통행중": 5,
+        "차대사람 - 기타": 15,
+        "차대사람 - 횡단중": 17,
+        "차량단독 - 기타": 3,
+        "차대사람 - 보도통행중": 1,
+        "차량단독 - 충돌": 1,
+        "차대사람 - 차도통행중": 1
+      },
+      "top_violations": {
+        "안전운전불이행": 151,
+        "안전거리미확보": 69,
+        "신호위반": 48,
+        "교차로운행방법위반": 19,
+        "보행자보호의무위반": 14
+      }
+    }
+  },
+  {
+    "sido": "대전광역시",
+    "sigungu": "동구",
+    "dong": null,
+    "region_full_name": "대전광역시 동구",
+    "accident_count": 306,
+    "elderly_driver_count": 306,
+    "fatal_count": 8,
+    "severe_count": 69,
+    "minor_count": 353,
+    "injury_report_count": 1,
+    "day_count": 224,
+    "night_count": 82,
+    "risk_score": 44,
+    "source_year_start": 2025,
+    "source_year_end": 2025,
+    "source_file": "TAAS 25년 사망,중상,경상 노인운전자 사고.xlsx",
+    "raw_payload": {
+      "accident_types": {
+        "차대차 - 충돌": 209,
+        "차대사람 - 횡단중": 24,
+        "차량단독 - 충돌": 3,
+        "차대차 - 추돌": 30,
+        "차대차 - 기타": 16,
+        "차대사람 - 길가장자리구역통행중": 12,
+        "차량단독 - 기타": 2,
+        "차대사람 - 기타": 5,
+        "차대사람 - 보도통행중": 2,
+        "차대사람 - 차도통행중": 3
+      },
+      "top_violations": {
+        "안전운전불이행": 142,
+        "안전거리미확보": 65,
+        "신호위반": 39,
+        "기타": 23,
+        "교차로운행방법위반": 15
       }
     }
   }

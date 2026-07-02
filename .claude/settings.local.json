@@ -65,7 +65,20 @@
       "Bash(python -m json.tool)",
       "Bash(Start-Sleep -Seconds 30)",
       "Bash(Select-String -Pattern \"source|reason|routeSource\")",
-      "Bash(awk *)"
+      "Bash(awk *)",
+      "Bash(node \"C:/Users/Hoon/AppData/Local/Temp/claude/Z--silverway-silverway/7207640b-c6f1-46cf-906f-f6b6da0b8f56/scratchpad/check-taas.js\")",
+      "Bash(node scripts/_tmp_check_taas.cjs)",
+      "Bash(node scripts/_tmp_check_db.cjs)",
+      "Bash(node scripts/_tmp_check_2025.cjs)",
+      "Bash(node scripts/_tmp_inspect_new.cjs)",
+      "Bash(node scripts/_tmp_calc_divisor.cjs)",
+      "Bash(rm -f \"Z:/silverway/silverway/scripts/_tmp_inspect_new.cjs\" \"Z:/silverway/silverway/scripts/_tmp_calc_divisor.cjs\")",
+      "Bash(node scripts/_tmp_delete_stale.cjs)",
+      "Bash(node scripts/_tmp_verify.cjs)",
+      "Bash(node -e \"console.log\\('grep check done'\\)\")",
+      "Bash(node scripts/_tmp_check_weather_col.cjs)",
+      "Bash(rm -f scripts/_tmp_check_weather_col.cjs)",
+      "Bash(node scripts/_tmp_check_claude_usage.cjs)"
     ]
   },
   "hooks": {

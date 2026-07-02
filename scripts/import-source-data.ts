@@ -35,6 +35,9 @@ const SOURCE_PERIOD = "2026-03-01~2026-04-01";
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
 const CONFIRM = args.includes("--confirm");
+// --only=accident_areas,station_aliases 처럼 특정 테이블만 선택 임포트 (미지정 시 전체)
+const ONLY_ARG = args.find((a) => a.startsWith("--only="));
+const ONLY_TABLES = ONLY_ARG ? new Set(ONLY_ARG.slice("--only=".length).split(",")) : null;
 
 function getEnv(key: string): string {
   const v = process.env[key];
@@ -168,14 +171,22 @@ async function importAccidentAreas(client: ReturnType<typeof createClient>) {
   const schemaVersion = await detectSchemaVersion(client, "accident_areas", rows[0]);
   const payload = schemaVersion === "v1" ? rows.map(toAccidentAreaV1) : rows;
 
+  let remaining = payload;
+  let inserted = 0;
+
   if (CONFIRM && schemaVersion === "v2") {
-    const sourceFile = String(rows[0]["source_file"] ?? "");
-    if (sourceFile) await deleteBySourceFile(client, "accident_areas", sourceFile);
+    // probe로 삽입된 rows[0]도 동일 source_file에 속하므로 함께 삭제된다 —
+    // 삭제 후 payload 전체를 다시 삽입해 probe row 유실을 방지한다.
+    const sourceFiles = [...new Set(rows.map((r) => String(r["source_file"] ?? "")).filter(Boolean))];
+    for (const sourceFile of sourceFiles) {
+      await deleteBySourceFile(client, "accident_areas", sourceFile);
+    }
+  } else {
+    // probe 성공 시 rows[0]는 이미 삽입됨 — 나머지만 삽입
+    remaining = schemaVersion === "v2" ? payload.slice(1) : payload;
+    inserted = schemaVersion === "v2" ? 1 : 0;
   }
 
-  // probe 성공 시 rows[0]는 이미 삽입됨 — 나머지만 삽입
-  const remaining = schemaVersion === "v2" ? payload.slice(1) : payload;
-  let inserted = schemaVersion === "v2" ? 1 : 0;
   inserted += await batchInsert(client, "accident_areas", remaining);
   console.log(`[import] accident_areas 완료: ${inserted}건 (스키마: ${schemaVersion})`);
 }
@@ -246,9 +257,9 @@ async function main() {
     auth: { persistSession: false },
   });
 
-  await importAccidentAreas(client);
-  await importAfcStationLoads(client);
-  await importStationAliases(client);
+  if (!ONLY_TABLES || ONLY_TABLES.has("accident_areas")) await importAccidentAreas(client);
+  if (!ONLY_TABLES || ONLY_TABLES.has("afc_station_loads")) await importAfcStationLoads(client);
+  if (!ONLY_TABLES || ONLY_TABLES.has("station_aliases")) await importStationAliases(client);
 
   console.log("[import] 전체 완료");
 }

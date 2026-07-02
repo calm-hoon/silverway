@@ -35,7 +35,7 @@ export function HeroSection() {
             letterSpacing: "-0.015em",
           }}
         >
-          부모님 이동,<br />
+          면허반납 의사결정,<br />
           데이터로 함께 결정하세요
         </h1>
         <p

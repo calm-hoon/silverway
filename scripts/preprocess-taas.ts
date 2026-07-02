@@ -10,11 +10,8 @@ import * as path from "path";
 import * as fs from "fs";
 
 const PROMPT_DIR = path.join(process.cwd(), "prompt");
+const TAAS_DIR = path.join(PROMPT_DIR, "TAAS");
 const OUT_DIR = path.join(process.cwd(), "data", "processed");
-
-const TAAS_FILE = "[TAAS] 사고분석-지역별.xlsx";
-const SOURCE_YEAR_START = 2022;
-const SOURCE_YEAR_END = 2024;
 
 type AccidentAreaRow = {
   sido: string;
@@ -44,6 +41,17 @@ function parseRegion(regionFull: string): { sido: string; sigungu: string } {
   return { sido: regionFull, sigungu: "" };
 }
 
+// "2023년 10월" 형식의 발생년월에서 연도만 추출
+function parseYear(raw: unknown): number | null {
+  const m = String(raw ?? "").match(/(\d{4})년/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+// 분모(RISK_SCORE_DIVISOR): 구 단위 1년치 누적 사고 통계에 맞춰 조정된 값.
+// 원래 /8이었으나 대전 5개 구 전체 데이터(2025년, 구당 최대 500건대)를 넣으면
+// 대부분의 구가 100으로 포화돼 구간 변별력이 사라져 /12로 재조정했다.
+const RISK_SCORE_DIVISOR = 12;
+
 function calcRiskScore(
   accidentCount: number,
   fatalCount: number,
@@ -57,38 +65,30 @@ function calcRiskScore(
     severeCount * 2 +
     injuryReportCount * 0.5 +
     nightCount * 0.5;
-  return Math.min(100, Math.max(0, Math.round(raw / 8)));
+  return Math.min(100, Math.max(0, Math.round(raw / RISK_SCORE_DIVISOR)));
 }
 
-function main() {
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+// 시군구 기준 group by
+type GroupAcc = {
+  accident_count: number;
+  elderly_driver_count: number;
+  fatal_count: number;
+  severe_count: number;
+  minor_count: number;
+  injury_report_count: number;
+  day_count: number;
+  night_count: number;
+  years: number[];
+  accident_types: Record<string, number>;
+  violations: Record<string, number>;
+};
 
-  console.log("[preprocess-taas] TAAS 파일 처리 중...");
-  const filePath = path.join(PROMPT_DIR, TAAS_FILE);
-  if (!fs.existsSync(filePath)) {
-    console.error(`  ❌ 파일 없음: ${filePath}`);
-    process.exit(1);
-  }
-
+function processTaasFile(filePath: string, sourceFile: string): AccidentAreaRow[] {
   const wb = XLSX.readFile(filePath, { type: "file", raw: true, cellDates: false });
   const ws = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { raw: true, defval: "" });
 
   console.log(`  원본 rows: ${rows.length}`);
-
-  // 시군구 기준 group by
-  type GroupAcc = {
-    accident_count: number;
-    elderly_driver_count: number;
-    fatal_count: number;
-    severe_count: number;
-    minor_count: number;
-    injury_report_count: number;
-    day_count: number;
-    night_count: number;
-    accident_types: Record<string, number>;
-    violations: Record<string, number>;
-  };
 
   const groups = new Map<string, GroupAcc>();
 
@@ -106,6 +106,7 @@ function main() {
         injury_report_count: 0,
         day_count: 0,
         night_count: 0,
+        years: [],
         accident_types: {},
         violations: {},
       });
@@ -133,6 +134,9 @@ function main() {
 
     const violation = String(row["법규위반"] ?? "").trim();
     if (violation) g.violations[violation] = (g.violations[violation] ?? 0) + 1;
+
+    const year = parseYear(row["발생년월"]);
+    if (year !== null) g.years.push(year);
   }
 
   const result: AccidentAreaRow[] = [];
@@ -170,16 +174,43 @@ function main() {
       day_count: g.day_count,
       night_count: g.night_count,
       risk_score: riskScore,
-      source_year_start: SOURCE_YEAR_START,
-      source_year_end: SOURCE_YEAR_END,
-      source_file: TAAS_FILE,
+      source_year_start: g.years.length > 0 ? Math.min(...g.years) : 0,
+      source_year_end: g.years.length > 0 ? Math.max(...g.years) : 0,
+      source_file: sourceFile,
       raw_payload: rawPayload,
     });
   }
 
+  return result;
+}
+
+function main() {
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+
+  console.log("[preprocess-taas] TAAS 폴더 처리 중...");
+  if (!fs.existsSync(TAAS_DIR)) {
+    console.error(`  ❌ 폴더 없음: ${TAAS_DIR}`);
+    process.exit(1);
+  }
+
+  const files = fs.readdirSync(TAAS_DIR).filter((f) => /\.xlsx?$/i.test(f)).sort();
+  if (files.length === 0) {
+    console.error(`  ❌ 처리할 xlsx 파일 없음: ${TAAS_DIR}`);
+    process.exit(1);
+  }
+  console.log(`  대상 파일: ${files.join(", ")}`);
+
+  const result: AccidentAreaRow[] = [];
+
+  for (const file of files) {
+    console.log(`[preprocess-taas] ${file} 처리 중...`);
+    const filePath = path.join(TAAS_DIR, file);
+    result.push(...processTaasFile(filePath, file));
+  }
+
   console.log(`  집계 지역 수: ${result.length}`);
   for (const r of result) {
-    console.log(`  - ${r.region_full_name}: accident=${r.accident_count}, fatal=${r.fatal_count}, severe=${r.severe_count}, elderly=${r.elderly_driver_count}, risk_score=${r.risk_score}`);
+    console.log(`  - ${r.region_full_name} (${r.source_file}): accident=${r.accident_count}, fatal=${r.fatal_count}, severe=${r.severe_count}, elderly=${r.elderly_driver_count}, risk_score=${r.risk_score}, years=${r.source_year_start}~${r.source_year_end}`);
   }
 
   fs.writeFileSync(
