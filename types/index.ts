@@ -255,6 +255,7 @@ export type AnalysisLogRow = {
   report: Json;
   data_sources: Json;
   fallback_flags: Json;
+  weather: Json | null;
   created_at: string | null;
 };
 

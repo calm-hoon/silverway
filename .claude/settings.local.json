@@ -64,7 +64,8 @@
       "Bash(npx playwright *)",
       "Bash(python -m json.tool)",
       "Bash(Start-Sleep -Seconds 30)",
-      "Bash(Select-String -Pattern \"source|reason|routeSource\")"
+      "Bash(Select-String -Pattern \"source|reason|routeSource\")",
+      "Bash(awk *)"
     ]
   },
   "hooks": {
