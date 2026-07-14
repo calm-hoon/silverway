@@ -1,7 +1,7 @@
 // SERVER ONLY — ANTHROPIC_API_KEY는 서버에서만 사용. 클라이언트 컴포넌트에서 import 금지.
 import Anthropic from "@anthropic-ai/sdk";
 import type { AnalysisResult, ReportContent } from "@/types";
-import { generateTemplateReportFromAnalysis } from "./generateTemplateReport";
+import { generateTemplateReportFromAnalysis, buildRiskExplanation } from "./generateTemplateReport";
 import { normalizeClaudeReport } from "./normalizeClaudeReport";
 import { validateReportContent } from "./reportSafety";
 import { getKstTime } from "@/lib/utils/time";
@@ -155,6 +155,13 @@ export async function generateClaudeReport(input: ClaudeReportInput): Promise<Cl
     if (!validation.ok) {
       console.error("[SilverWay] generateClaudeReport: CLAUDE_SAFETY_FAILURE reason=%s (%dms)", validation.reason, Date.now() - startMs);
       return fallback(analysis, "CLAUDE_SAFETY_FAILURE");
+    }
+
+    // Claude가 다른 필드는 지켰지만 riskExplanation만 누락하는 경우가 있어(LLM 응답은
+    // 스키마를 100% 보장하지 않음) 이 필드만 템플릿으로 보강한다 — 전체를 TEMPLATE로
+    // 폴백하면 정상적으로 생성된 familyMessage 등을 버리게 되므로 필드 단위로 보완.
+    if (!normalized.riskExplanation) {
+      normalized.riskExplanation = buildRiskExplanation(analysis.drivingRisk);
     }
 
     console.info("[SilverWay] generateClaudeReport: ok source=CLAUDE (%dms)", Date.now() - startMs);

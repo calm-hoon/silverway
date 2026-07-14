@@ -93,7 +93,7 @@ function buildBody(input: GenerateTemplateReportInput): string {
 }
 
 // 분석적 톤으로 위험 요인을 설명하는 해설 텍스트 (Claude 실패 시에도 항상 제공)
-function buildRiskExplanation(drivingRisk?: DrivingRisk): string {
+export function buildRiskExplanation(drivingRisk?: DrivingRisk): string {
   if (!drivingRisk || drivingRisk.factors.length === 0) {
     return "운전 위험 지수를 구성하는 세부 요인 정보를 확인하지 못했습니다.";
   }
