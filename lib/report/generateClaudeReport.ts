@@ -4,6 +4,7 @@ import type { AnalysisResult, ReportContent } from "@/types";
 import { generateTemplateReportFromAnalysis } from "./generateTemplateReport";
 import { normalizeClaudeReport } from "./normalizeClaudeReport";
 import { validateReportContent } from "./reportSafety";
+import { getKstTime } from "@/lib/utils/time";
 
 export type ClaudeReportInput = {
   analysis: AnalysisResult;
@@ -25,16 +26,16 @@ function buildPrompt(analysis: AnalysisResult): string {
     : request.ageGroup === "60s" ? "60대"
     : "고령";
 
-  // 출발시간 사람이 읽기 편한 형식으로 변환
+  // 출발시간 사람이 읽기 편한 형식으로 변환 (KST 기준, 서버 타임존 무관)
   let departureTimeText = request.departureTime;
-  try {
-    const d = new Date(request.departureTime);
-    const hour = d.getHours();
-    const min = String(d.getMinutes()).padStart(2, "0");
+  const kstDeparture = getKstTime(request.departureTime);
+  if (kstDeparture) {
+    const { hour, minute } = kstDeparture;
+    const min = String(minute).padStart(2, "0");
     const ampm = hour < 12 ? "오전" : "오후";
     const h12 = hour % 12 === 0 ? 12 : hour % 12;
     departureTimeText = `${ampm} ${h12}시 ${min}분`;
-  } catch { /* 변환 실패 시 원본 사용 */ }
+  }
 
   // 위험 요인 점수 포함
   const factorText = drivingRisk.factors

@@ -41,6 +41,19 @@ describe("calculateDrivingRisk", () => {
     expect(nightResult.score).toBeGreaterThan(dayResult.score);
   });
 
+  it("프론트엔드가 실제로 보내는 UTC(Z) 형식 출발시간도 서버 타임존과 무관하게 KST 기준으로 판단한다", () => {
+    // 오후 7시(19:00) KST == 10:00 UTC → 저녁 시간대(12점)
+    const eveningResult = calculateDrivingRisk({ departureTime: "2026-05-04T10:00:00.000Z" });
+    // 오전 10시(10:00) KST == 01:00 UTC → 오전·낮 시간대(5점)
+    const morningResult = calculateDrivingRisk({ departureTime: "2026-05-04T01:00:00.000Z" });
+    expect(eveningResult.score).toBeGreaterThan(morningResult.score);
+
+    const eveningTimeFactor = eveningResult.factors.find((f) => f.key === "time");
+    const morningTimeFactor = morningResult.factors.find((f) => f.key === "time");
+    expect(eveningTimeFactor?.description).toContain("저녁");
+    expect(morningTimeFactor?.description).toContain("오전·낮");
+  });
+
   it("description에 '운전 위험 지수' 표현이 포함된다", () => {
     const result = calculateDrivingRisk({ ageGroup: "70s" });
     expect(result.description).toContain("운전 위험 지수");

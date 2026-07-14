@@ -6,6 +6,7 @@ import type {
   TransitSummary,
   WeatherRisk,
 } from "@/types";
+import { getKstTime } from "@/lib/utils/time";
 
 export type GenerateTemplateReportInput = {
   originName?: string;
@@ -18,18 +19,12 @@ export type GenerateTemplateReportInput = {
 };
 
 function formatHour(departureTime?: string): string {
-  if (!departureTime) return "";
-  try {
-    const date = new Date(departureTime);
-    if (isNaN(date.getTime())) return "";
-    const h = date.getHours();
-    const m = date.getMinutes();
-    const ampm = h < 12 ? "오전" : "오후";
-    const displayH = h % 12 || 12;
-    return m === 0 ? `${ampm} ${displayH}시` : `${ampm} ${displayH}시 ${m}분`;
-  } catch {
-    return "";
-  }
+  const kst = getKstTime(departureTime);
+  if (!kst) return "";
+  const { hour: h, minute: m } = kst;
+  const ampm = h < 12 ? "오전" : "오후";
+  const displayH = h % 12 || 12;
+  return m === 0 ? `${ampm} ${displayH}시` : `${ampm} ${displayH}시 ${m}분`;
 }
 
 function buildTitle(level?: string): string {

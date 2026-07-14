@@ -77,6 +77,16 @@ describe("generateTemplateReport", () => {
     expect(result.body).toContain("과거 패턴 기반 예측형 혼잡도");
   });
 
+  it("UTC(Z) 형식 출발시간을 서버 타임존과 무관하게 KST 기준으로 표시한다 (오후 7시 = 10:00 UTC)", () => {
+    const result = generateTemplateReport({
+      drivingRisk: makeDrivingRisk("LOW", 30),
+      originName: "대전광역시청",
+      destinationName: "충남대학교병원",
+      departureTime: "2026-07-14T10:00:00.000Z",
+    });
+    expect(result.body).toContain("오후 7시");
+  });
+
   it("familyMessage가 비어 있지 않다", () => {
     const result = generateTemplateReport({});
     expect(result.familyMessage.trim().length).toBeGreaterThan(0);

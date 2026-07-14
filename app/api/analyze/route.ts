@@ -10,6 +10,7 @@ import { calculateCongestion } from "@/lib/risk/calculateCongestion";
 import { generateClaudeReport } from "@/lib/report/generateClaudeReport";
 import { extractSigungu, getAccidentAreaBySigungu } from "@/lib/data/accidentAreas";
 import { getAfcStationLoads, getAfcHourlyAverage } from "@/lib/data/afcStationLoads";
+import { getKstHour } from "@/lib/utils/time";
 import type { AnalysisRequest, AnalysisResult, TransitStep } from "@/types";
 
 export function GET() {
@@ -71,13 +72,8 @@ export async function POST(request: Request) {
       (s: TransitStep) => s.mode === "SUBWAY" && s.stationFrom
     );
     const afcStationName = subwayStep?.stationFrom ?? null;
-    const departureHour = (() => {
-      try {
-        // ISO 8601에서 시간 직접 추출 — getHours()는 서버 TZ(UTC)에 따라 틀린 값을 반환할 수 있음
-        const m = String(departureTime).match(/T(\d{2}):/);
-        return m ? parseInt(m[1], 10) : null;
-      } catch { return null; }
-    })();
+    // getKstHour: 서버 TZ(UTC)와 무관하게 KST 기준 시(hour)를 계산 (Z/+09:00 형식 모두 지원)
+    const departureHour = getKstHour(departureTime);
 
     // AFC 혼잡도 조회 (routeSource=FALLBACK이어도 fallback route의 stationFrom 기준으로 조회)
     let afcCongestionSource = afcStationName === null ? "NO_SUBWAY_STEP" : "FALLBACK";

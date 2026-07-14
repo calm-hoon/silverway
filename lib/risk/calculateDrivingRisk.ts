@@ -1,4 +1,5 @@
 import type { AgeGroup, DrivingRisk, DrivingRiskFactor, RiskLevel } from "@/types";
+import { getKstHour } from "@/lib/utils/time";
 
 export type CalculateDrivingRiskInput = {
   accidentArea?: {
@@ -64,19 +65,16 @@ function calculateTimeRisk(departureTime?: string): { score: number; description
     return { score: 5, description: "출발 시각 정보가 없어 기본값을 적용했습니다." };
   }
 
-  try {
-    const date = new Date(departureTime);
-    if (isNaN(date.getTime())) throw new Error("invalid");
-    const hour = date.getHours();
-
-    if (hour >= 22 || hour < 6) return { score: 15, description: "심야·새벽 시간대로 시간대 위험 지수가 높습니다." };
-    if (hour >= 19) return { score: 12, description: "저녁 시간대로 시간대 위험 지수가 높은 편입니다." };
-    if (hour >= 16) return { score: 10, description: "오후 퇴근 시간대로 교통량이 많습니다." };
-    if (hour >= 9) return { score: 5, description: "오전·낮 시간대로 시간대 위험 지수가 낮습니다." };
-    return { score: 8, description: "오전 출근 시간대로 교통량이 많습니다." };
-  } catch {
+  const hour = getKstHour(departureTime);
+  if (hour === null) {
     return { score: 5, description: "출발 시각 파싱에 실패해 기본값을 적용했습니다." };
   }
+
+  if (hour >= 22 || hour < 6) return { score: 15, description: "심야·새벽 시간대로 시간대 위험 지수가 높습니다." };
+  if (hour >= 19) return { score: 12, description: "저녁 시간대로 시간대 위험 지수가 높은 편입니다." };
+  if (hour >= 16) return { score: 10, description: "오후 퇴근 시간대로 교통량이 많습니다." };
+  if (hour >= 9) return { score: 5, description: "오전·낮 시간대로 시간대 위험 지수가 낮습니다." };
+  return { score: 8, description: "오전 출근 시간대로 교통량이 많습니다." };
 }
 
 function calculateWeatherRisk(weatherRiskScore?: number): { score: number; description: string } {
