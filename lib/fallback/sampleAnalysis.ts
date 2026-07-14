@@ -97,6 +97,27 @@ export const sampleAnalysis: AnalysisResult = {
       "기상청 단기예보",
       "ODsay 대중교통 경로",
     ],
+    riskExplanation:
+      "이번 운전 위험 지수 62점(보통)에는 연령대(70점)와 지역 사고 패턴(55점) 항목이 " +
+      "가장 큰 영향을 주었습니다. 70대 운전자는 반응 속도 저하 가능성이 반영되며, " +
+      "해당 지역은 고령 운전자 관련 사고 패턴이 상대적으로 뚜렷합니다. 이는 실제 사고 " +
+      "가능성을 의미하지 않으며, 공공데이터 기반 상대 점수를 참고 자료로만 활용해주세요.",
+    timeRecommendation: {
+      recommendedHour: 10,
+      recommendedLabel: "오전 10시",
+      reason:
+        "오전 10시 무렵이 다른 시간대보다 운전 위험 지수가 최대 10점 낮게 나타나 " +
+        "상대적으로 여유 있는 시간대입니다.",
+      slots: [
+        { hour: 7, iso: "2026-05-04T07:00:00+09:00", label: "오전 7시", score: 69, level: "MEDIUM", congestionLabel: "혼잡", weatherLabel: "맑음" },
+        { hour: 10, iso: "2026-05-04T10:00:00+09:00", label: "오전 10시", score: 62, level: "MEDIUM", congestionLabel: "보통", weatherLabel: "맑음" },
+        { hour: 13, iso: "2026-05-04T13:00:00+09:00", label: "오후 1시", score: 65, level: "MEDIUM", congestionLabel: "여유", weatherLabel: "맑음" },
+        { hour: 16, iso: "2026-05-04T16:00:00+09:00", label: "오후 4시", score: 67, level: "MEDIUM", congestionLabel: "보통", weatherLabel: "맑음" },
+        { hour: 19, iso: "2026-05-04T19:00:00+09:00", label: "오후 7시", score: 69, level: "MEDIUM", congestionLabel: "혼잡", weatherLabel: "맑음" },
+        { hour: 22, iso: "2026-05-04T22:00:00+09:00", label: "오후 10시", score: 72, level: "HIGH", congestionLabel: "여유", weatherLabel: "맑음" },
+      ],
+      generatedBy: "TEMPLATE",
+    },
   },
 
   dataSources: [

@@ -40,6 +40,21 @@ describe("createMockAnalysisResult", () => {
     expect(result.data.fallbackFlags).toBeDefined();
   });
 
+  it("report.riskExplanation이 비어 있지 않다", () => {
+    const result = createMockAnalysisResult();
+    expect(result.data.report.riskExplanation?.trim().length).toBeGreaterThan(0);
+  });
+
+  it("report.timeRecommendation이 존재하고 대표 시간대 6개를 포함한다", () => {
+    const result = createMockAnalysisResult({
+      departureTime: "2026-05-04T09:00:00+09:00",
+    });
+    const rec = result.data.report.timeRecommendation;
+    expect(rec).toBeDefined();
+    expect(rec?.slots.length).toBe(6);
+    expect(rec?.slots.some((s) => s.hour === rec.recommendedHour)).toBe(true);
+  });
+
   it("핵심 표현 필드에 금지 표현이 포함되지 않는다", () => {
     // drivingRisk.description은 서비스 원칙에 따른 필수 면책 문구이므로 제외
     const result = createMockAnalysisResult({ ageGroup: "80s" });
@@ -49,6 +64,8 @@ describe("createMockAnalysisResult", () => {
       result.data.report.recommendation,
       result.data.report.familyMessage,
       result.data.report.body ?? "",
+      result.data.report.riskExplanation ?? "",
+      result.data.report.timeRecommendation?.reason ?? "",
       result.message,
       ...result.data.drivingRisk.factors.map((f) => f.description),
     ].join(" ");

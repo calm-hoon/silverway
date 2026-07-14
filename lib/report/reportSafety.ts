@@ -33,7 +33,15 @@ export function sanitizeReportText(text: string): string {
 }
 
 export function validateReportContent(report: ReportContent): { ok: true } | { ok: false; reason: string } {
-  const fields = [report.title, report.body ?? "", report.familyMessage, report.summary, report.recommendation];
+  const fields = [
+    report.title,
+    report.body ?? "",
+    report.familyMessage,
+    report.summary,
+    report.recommendation,
+    report.riskExplanation ?? "",
+    report.timeRecommendation?.reason ?? "",
+  ];
   const combined = fields.join(" ");
 
   const found = FORBIDDEN_REPORT_TERMS.find((term) =>

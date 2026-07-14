@@ -4,7 +4,9 @@ import { sampleAnalysis } from "./sampleAnalysis";
 import { sampleRoute } from "./sampleRoute";
 import { sampleWeather } from "./sampleWeather";
 import { calculateDrivingRisk } from "@/lib/risk/calculateDrivingRisk";
+import { buildTimeSlotOptions } from "@/lib/risk/buildTimeSlotOptions";
 import { generateTemplateReport } from "@/lib/report/generateTemplateReport";
+import { templateRecommendation } from "@/lib/report/generateTimeRecommendation";
 
 export type MockAnalysisResponse = {
   ok: true;
@@ -33,15 +35,25 @@ export function createMockAnalysisResult(partial?: Partial<AnalysisRequest>): Mo
   const transit = sampleRoute;
   const weather = sampleWeather;
 
-  const report = generateTemplateReport({
-    originName: request.origin.name,
-    destinationName: request.destination.name,
-    drivingRisk,
-    transit,
-    weather,
-    departureTime: request.departureTime,
+  // 오프라인 mock 경로에서도 AI 시간대 추천 카드가 항상 보이도록 동기 계산 (외부 API 호출 없음)
+  const timeSlotOptions = buildTimeSlotOptions({
+    referenceDepartureTime: request.departureTime,
     ageGroup: request.ageGroup,
+    accidentAreaRiskScore: 55,
   });
+
+  const report = {
+    ...generateTemplateReport({
+      originName: request.origin.name,
+      destinationName: request.destination.name,
+      drivingRisk,
+      transit,
+      weather,
+      departureTime: request.departureTime,
+      ageGroup: request.ageGroup,
+    }),
+    timeRecommendation: templateRecommendation(timeSlotOptions),
+  };
 
   const data: AnalysisResult = {
     id: `mock-${Date.now()}`,

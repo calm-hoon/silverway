@@ -92,6 +92,27 @@ function buildBody(input: GenerateTemplateReportInput): string {
   return parts.join(" ");
 }
 
+// 분석적 톤으로 위험 요인을 설명하는 해설 텍스트 (Claude 실패 시에도 항상 제공)
+function buildRiskExplanation(drivingRisk?: DrivingRisk): string {
+  if (!drivingRisk || drivingRisk.factors.length === 0) {
+    return "운전 위험 지수를 구성하는 세부 요인 정보를 확인하지 못했습니다.";
+  }
+
+  const topFactors = [...drivingRisk.factors]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2);
+
+  const factorText = topFactors
+    .map((f) => `${f.label}(${f.score}${f.maxScore ? `/${f.maxScore}` : ""}점)`)
+    .join(", ");
+
+  return (
+    `이번 운전 위험 지수 ${drivingRisk.score}점(${drivingRisk.label})에는 ${factorText} 항목이 ` +
+    `가장 큰 영향을 주었습니다. 이는 실제 사고 가능성을 의미하지 않으며, 공공데이터 기반 상대 점수를 ` +
+    "참고 자료로만 활용해주세요."
+  );
+}
+
 function buildFamilyMessage(input: GenerateTemplateReportInput): string {
   const { originName, destinationName, drivingRisk, transit } = input;
 
@@ -148,6 +169,7 @@ export function generateTemplateReport(input: GenerateTemplateReportInput): Repo
     cautions: [
       "이 내용은 의사결정 보조용 안내이며, 실제 사고 가능성을 의미하지 않습니다.",
     ],
+    riskExplanation: buildRiskExplanation(drivingRisk),
   };
 }
 

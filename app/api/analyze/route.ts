@@ -6,10 +6,13 @@ import { saveAnalysisLog } from "@/lib/supabase/analysisLogs";
 import { getTransitRoute } from "@/lib/odsay";
 import { getWeatherRisk } from "@/lib/weather";
 import { calculateDrivingRisk } from "@/lib/risk/calculateDrivingRisk";
-import { calculateCongestion } from "@/lib/risk/calculateCongestion";
+import { estimateCongestionForHour } from "@/lib/risk/estimateCongestion";
+import { buildTimeSlotOptions } from "@/lib/risk/buildTimeSlotOptions";
 import { generateClaudeReport } from "@/lib/report/generateClaudeReport";
+import { generateTimeRecommendation } from "@/lib/report/generateTimeRecommendation";
 import { extractSigungu, getAccidentAreaBySigungu } from "@/lib/data/accidentAreas";
-import { getAfcStationLoads, getAfcHourlyAverage } from "@/lib/data/afcStationLoads";
+import { getWeatherRiskForSlots } from "@/lib/weather/getWeatherRiskForSlots";
+import { buildDaySlotIsoList } from "@/lib/risk/buildDaySlots";
 import { getKstHour } from "@/lib/utils/time";
 import type { AnalysisRequest, AnalysisResult, TransitStep } from "@/types";
 
@@ -76,40 +79,7 @@ export async function POST(request: Request) {
     const departureHour = getKstHour(departureTime);
 
     // AFC 혼잡도 조회 (routeSource=FALLBACK이어도 fallback route의 stationFrom 기준으로 조회)
-    let afcCongestionSource = afcStationName === null ? "NO_SUBWAY_STEP" : "FALLBACK";
-    let congestion = null;
-    if (afcStationName && departureHour !== null) {
-      const [afcResult, avgResult] = await Promise.all([
-        getAfcStationLoads({ stationName: afcStationName, hour: departureHour }),
-        getAfcHourlyAverage(departureHour),
-      ]);
-
-      if (afcResult.ok && afcResult.loads.length > 0) {
-        const overallAvg = avgResult ?? (afcResult.loads.reduce((s, l) => s + l.onboardCount, 0) / afcResult.loads.length);
-        const paddedLoads = afcResult.loads.map((l) => ({ ...l, onboardCount: l.onboardCount }));
-        const syntheticBaseCount = Math.round(overallAvg);
-        const baseLoads = Array.from({ length: 10 }, () => ({
-          stationName: "__base__",
-          hour: departureHour,
-          direction: "UP" as const,
-          onboardCount: syntheticBaseCount,
-          serviceDayType: "WEEKDAY" as const,
-        }));
-        congestion = calculateCongestion({
-          stationName: afcStationName,
-          hour: departureHour,
-          stationLoads: [...paddedLoads, ...baseLoads],
-        });
-        afcCongestionSource = "SUPABASE";
-      } else {
-        // ok=true+빈배열: 역명 매칭 없음 / ok=false: 데이터 미존재(AFC_DATA_NOT_FOUND) 또는 DB 오류
-        const isDataNotFound = !afcResult.ok && (
-          afcResult.reason === "AFC_DATA_NOT_FOUND" ||
-          afcResult.reason === "STATION_NAME_EMPTY"
-        );
-        afcCongestionSource = (afcResult.ok || isDataNotFound) ? "NO_STATION_MATCH" : "DB_QUERY_FAILED";
-      }
-    }
+    const { congestion, source: afcCongestionSource } = await estimateCongestionForHour(afcStationName, departureHour);
 
     // TAAS 실제 데이터 또는 fallback으로 운전 위험 지수 산정
     const drivingRisk = calculateDrivingRisk({
@@ -155,9 +125,44 @@ export async function POST(request: Request) {
       },
     };
 
-    // Claude 리포트 생성 — 실패 시 generateTemplateReport fallback 사용
-    const reportResult = await generateClaudeReport({ analysis: analysisData });
-    analysisData.report = reportResult.report;
+    // AI 최적 출발시간대 추천 준비 — 하루 중 대표 시간대별 날씨·혼잡도를 미리 조회
+    // (기상청 원본 응답 1회 재사용 + AFC 시간대별 조회, generateClaudeReport와 병렬 실행하기 전에 필요)
+    const accidentAreaRiskScore = accidentAreaResult.ok ? accidentAreaResult.data.risk_score : 55;
+    const daySlots = buildDaySlotIsoList(departureTime);
+
+    const [weatherSlots, congestionSlots] = await Promise.all([
+      getWeatherRiskForSlots({ lat: originLat, lng: originLng, isoList: daySlots.map((s) => s.iso) }),
+      Promise.all(daySlots.map((s) => estimateCongestionForHour(afcStationName, s.hour))),
+    ]);
+
+    const weatherBySlot = new Map<number, { riskScore?: number; label?: string }>();
+    const congestionBySlot = new Map<number, string>();
+    daySlots.forEach((s, i) => {
+      const w = weatherSlots[i]?.weather;
+      weatherBySlot.set(s.hour, { riskScore: w?.riskScore ?? undefined, label: w?.label });
+      const label = congestionSlots[i]?.congestion?.label;
+      if (label) congestionBySlot.set(s.hour, label);
+    });
+
+    const timeSlotOptions = buildTimeSlotOptions({
+      referenceDepartureTime: departureTime,
+      ageGroup: analysisData.request.ageGroup,
+      accidentAreaRiskScore,
+      weatherBySlot,
+      congestionBySlot,
+    });
+
+    // Claude 리포트 생성 + AI 시간대 추천 생성 — 서로 독립적이므로 병렬 실행 (지연시간 절감)
+    // 둘 다 실패해도 generateTemplateReport / 최저 점수 슬롯 선택으로 자동 대체됨
+    const [reportResult, timeRecommendation] = await Promise.all([
+      generateClaudeReport({ analysis: analysisData }),
+      generateTimeRecommendation(timeSlotOptions, {
+        originName: analysisData.request.origin.name,
+        destinationName: analysisData.request.destination.name,
+        ageGroup: analysisData.request.ageGroup,
+      }),
+    ]);
+    analysisData.report = { ...reportResult.report, timeRecommendation };
     if (analysisData.fallbackFlags) {
       analysisData.fallbackFlags.report = !reportResult.ok;
     }

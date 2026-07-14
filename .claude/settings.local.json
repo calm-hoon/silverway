@@ -81,7 +81,8 @@
       "Bash(node scripts/_tmp_check_claude_usage.cjs)",
       "Bash(node scripts/_tmp_test_claude_live.cjs)",
       "Bash(rm -f scripts/_tmp_test_claude_live.cjs scripts/_tmp_check_claude_usage.cjs)",
-      "Bash(grep -rn \"T\\(\\\\\\\\\\\\\\\\d{2}\\)\\\\|getHours\\\\|match\\(/T\" --include=\"*.ts\" --include=\"*.tsx\" .)"
+      "Bash(grep -rn \"T\\(\\\\\\\\\\\\\\\\d{2}\\)\\\\|getHours\\\\|match\\(/T\" --include=\"*.ts\" --include=\"*.tsx\" .)",
+      "Bash(netstat -ano)"
     ]
   },
   "hooks": {

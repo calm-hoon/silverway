@@ -92,6 +92,17 @@ describe("generateTemplateReport", () => {
     expect(result.familyMessage.trim().length).toBeGreaterThan(0);
   });
 
+  it("riskExplanation에 가장 기여도가 큰 요인이 언급된다", () => {
+    const drivingRisk = makeDrivingRisk("MEDIUM", 55);
+    const result = generateTemplateReport({ drivingRisk });
+    expect(result.riskExplanation).toContain("지역 사고 패턴");
+  });
+
+  it("drivingRisk가 없어도 riskExplanation이 비어있지 않다", () => {
+    const result = generateTemplateReport({});
+    expect(result.riskExplanation?.trim().length).toBeGreaterThan(0);
+  });
+
   it("입력값이 비어 있어도 throw하지 않는다", () => {
     expect(() => generateTemplateReport({})).not.toThrow();
     const result = generateTemplateReport({});

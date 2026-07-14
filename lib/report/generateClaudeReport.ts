@@ -76,8 +76,15 @@ function buildPrompt(analysis: AnalysisResult): string {
   "summary": "핵심 요약 (한 줄, 80자 이내, 안심시키는 톤)",
   "recommendation": "권장 행동 안내 (2~3문장, 데이터 기반이지만 따뜻하게)",
   "body": "상세 안내 본문 (3~5문장)",
-  "familyMessage": "아래 규칙에 따라 작성한 편지 본문"
+  "familyMessage": "아래 규칙에 따라 작성한 편지 본문",
+  "riskExplanation": "아래 riskExplanation 작성 규칙에 따라 작성한 해설"
 }
+
+riskExplanation 작성 규칙:
+- familyMessage와 달리 감정적 어조가 아니라 분석적인 설명 톤으로 작성
+- 위 "위험 요인 상세"에 제시된 요인별 점수 중 기여도가 큰 요인 1~2개를 구체적으로 언급
+- 왜 그 요인이 점수에 영향을 주었는지 데이터 근거를 들어 2~4문장으로 설명
+- "운전 위험 지수" 표현 사용, "사고 확률" 등 금지 표현 사용 금지
 
 familyMessage 작성 규칙:
 - "부모님께"로 시작하는 편지 형식, 존댓말

@@ -22,6 +22,7 @@ export function normalizeClaudeReport(rawText: string): ReportContent | null {
   let summary: string;
   let recommendation: string;
   let familyMessage: string;
+  let riskExplanation: string;
 
   if (parsed) {
     title = typeof parsed.title === "string" ? parsed.title.trim() : "";
@@ -29,6 +30,7 @@ export function normalizeClaudeReport(rawText: string): ReportContent | null {
     summary = typeof parsed.summary === "string" ? parsed.summary.trim() : "";
     recommendation = typeof parsed.recommendation === "string" ? parsed.recommendation.trim() : "";
     familyMessage = typeof parsed.familyMessage === "string" ? parsed.familyMessage.trim() : "";
+    riskExplanation = typeof parsed.riskExplanation === "string" ? parsed.riskExplanation.trim() : "";
   } else {
     // JSON 파싱 실패 시 raw text를 body로 사용
     body = rawText.trim().slice(0, 1000);
@@ -36,6 +38,7 @@ export function normalizeClaudeReport(rawText: string): ReportContent | null {
     summary = "이동 조건을 분석했습니다.";
     recommendation = "출발 전 날씨와 컨디션을 확인하신 후 안전하게 이동하세요.";
     familyMessage = "이동 분석이 완료되었습니다. 이동 전 컨디션과 날씨를 함께 확인해보면 좋겠습니다.";
+    riskExplanation = "";
   }
 
   if (!title || !body) return null;
@@ -47,6 +50,7 @@ export function normalizeClaudeReport(rawText: string): ReportContent | null {
   summary = sanitizeReportText(summary);
   recommendation = sanitizeReportText(recommendation);
   familyMessage = sanitizeReportText(familyMessage);
+  riskExplanation = sanitizeReportText(riskExplanation);
 
   // familyMessage 길이 제한
   if (familyMessage.length > MAX_FAMILY_MESSAGE_LEN) {
@@ -62,10 +66,11 @@ export function normalizeClaudeReport(rawText: string): ReportContent | null {
     dataSources: ["Claude AI 생성 리포트"],
     generatedBy: "CLAUDE",
     cautions: ["이 내용은 의사결정 보조용 안내이며, 실제 사고 가능성을 의미하지 않습니다."],
+    riskExplanation: riskExplanation || undefined,
   };
 
   // 금지 표현이 남아 있으면 null 처리
-  const combined = [title, body, summary, recommendation, familyMessage].join(" ");
+  const combined = [title, body, summary, recommendation, familyMessage, riskExplanation].join(" ");
   if (containsForbiddenReportTerms(combined)) return null;
 
   const validation = validateReportContent(report);

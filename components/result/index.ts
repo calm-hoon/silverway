@@ -1,6 +1,8 @@
 export { ResultSummary } from "./ResultSummary";
 export { DrivingRiskCard } from "./DrivingRiskCard";
 export { RiskFactorList } from "./RiskFactorList";
+export { RiskExplanationCard } from "./RiskExplanationCard";
+export { TimeRecommendationCard } from "./TimeRecommendationCard";
 export { TransitAlternativeCard } from "./TransitAlternativeCard";
 export { CongestionCard } from "./CongestionCard";
 export { WeatherSummaryCard } from "./WeatherSummaryCard";

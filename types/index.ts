@@ -194,6 +194,32 @@ export type WeatherRisk = {
 
 export type ReportGeneratedBy = "TEMPLATE" | "CLAUDE";
 
+/** 하루 중 특정 시간대의 운전 위험 지수 비교용 옵션 (AI 최적 출발시간대 추천용) */
+export type TimeSlotOption = {
+  /** 0~23 시(hour), KST 기준 */
+  hour: number;
+  /** 해당 시간대의 ISO 8601 출발 시각 */
+  iso: string;
+  /** 사람이 읽기 쉬운 시간 표기 (예: "오후 7시") */
+  label: string;
+  /** 0~100 운전 위험 지수 */
+  score: number;
+  level: RiskLevel;
+  /** 과거 패턴 기반 예측형 혼잡도 레이블 */
+  congestionLabel?: string;
+  weatherLabel?: string;
+};
+
+/** AI가 하루 중 여러 시간대를 비교해 추천하는 출발 시간대 */
+export type TimeRecommendation = {
+  recommendedHour: number;
+  recommendedLabel: string;
+  /** 추천 이유 (실제 점수 비교 근거) */
+  reason: string;
+  slots: TimeSlotOption[];
+  generatedBy: ReportGeneratedBy;
+};
+
 export type ReportContent = {
   title: string;
   summary: string;
@@ -207,6 +233,10 @@ export type ReportContent = {
   generatedBy?: ReportGeneratedBy;
   /** 의사결정 보조 안내 면책 문구 목록 */
   cautions?: string[];
+  /** 위험 요인별 AI 해설 (왜 이 점수인지 데이터 근거와 함께 설명) */
+  riskExplanation?: string;
+  /** AI 최적 출발 시간대 추천 */
+  timeRecommendation?: TimeRecommendation;
 };
 
 // ──────────────────────────────────────────────

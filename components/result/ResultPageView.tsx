@@ -3,6 +3,8 @@ import { MapSection } from "@/components/map/MapSection";
 import { ResultSummary } from "./ResultSummary";
 import { DrivingRiskCard } from "./DrivingRiskCard";
 import { RiskFactorList } from "./RiskFactorList";
+import { RiskExplanationCard } from "./RiskExplanationCard";
+import { TimeRecommendationCard } from "./TimeRecommendationCard";
 import { TransitAlternativeCard } from "./TransitAlternativeCard";
 import { CongestionCard } from "./CongestionCard";
 import { WeatherSummaryCard } from "./WeatherSummaryCard";
@@ -24,6 +26,13 @@ export function ResultPageView({ analysis }: ResultPageViewProps) {
       {analysis.drivingRisk.factors.length > 0 && (
         <RiskFactorList factors={analysis.drivingRisk.factors} />
       )}
+
+      <RiskExplanationCard
+        explanation={analysis.report.riskExplanation}
+        generatedBy={analysis.report.generatedBy}
+      />
+
+      <TimeRecommendationCard recommendation={analysis.report.timeRecommendation} />
 
       <MapSection analysis={analysis} />
 
