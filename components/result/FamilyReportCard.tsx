@@ -78,7 +78,7 @@ export function FamilyReportCard({ report }: FamilyReportCardProps) {
                 lineHeight: 1.2,
               }}
             >
-              AI 분석 리포트
+              가족 편지
             </div>
             <div
               style={{
@@ -91,39 +91,6 @@ export function FamilyReportCard({ report }: FamilyReportCardProps) {
             </div>
           </div>
         </div>
-
-        {/* 요약 */}
-        {report.summary && (
-          <div
-            style={{
-              fontSize: "var(--sw-fs-sm)",
-              color: "var(--sw-ink-2)",
-              lineHeight: 1.65,
-              padding: "10px 14px",
-              background: "var(--sw-paper)",
-              borderRadius: "var(--sw-r-md)",
-            }}
-          >
-            {report.summary}
-          </div>
-        )}
-
-        {/* 권장 안내 */}
-        {report.recommendation && (
-          <div
-            style={{
-              fontSize: "var(--sw-fs-sm)",
-              color: "var(--sw-ink)",
-              lineHeight: 1.65,
-              padding: "12px 14px",
-              background: "var(--sw-paper)",
-              borderRadius: "var(--sw-r-md)",
-              borderLeft: "3px solid var(--sw-primary)",
-            }}
-          >
-            {report.recommendation}
-          </div>
-        )}
 
         {/* 가족 메시지 — 카드/편지 스타일 */}
         <div
