@@ -1,12 +1,14 @@
 import { Icon } from "@/components/ui/Icon";
+import { StatusPill } from "@/components/ui/StatusPill";
 
 type FeatureCardProps = {
   icon: string;
   title: string;
   description: string;
+  isAI?: boolean;
 };
 
-export function FeatureCard({ icon, title, description }: FeatureCardProps) {
+export function FeatureCard({ icon, title, description, isAI }: FeatureCardProps) {
   return (
     <div
       style={{
@@ -35,6 +37,9 @@ export function FeatureCard({ icon, title, description }: FeatureCardProps) {
       <div>
         <div
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
             fontSize: "var(--sw-fs-base)",
             fontWeight: "var(--sw-fw-bold)",
             color: "var(--sw-ink)",
@@ -42,6 +47,7 @@ export function FeatureCard({ icon, title, description }: FeatureCardProps) {
           }}
         >
           {title}
+          {isAI && <StatusPill label="AI" tone="info" />}
         </div>
         <div
           style={{

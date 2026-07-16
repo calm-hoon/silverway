@@ -115,7 +115,9 @@
       "Bash(sed -i 's|// SLIDE 10 — 실제 서비스 화면 \\(스크린샷은 아래에서 별도 삽입\\)|// SLIDE 11 — 실제 서비스 화면 \\(스크린샷은 아래에서 별도 삽입\\)|' build.js)",
       "Bash(sed -i 's|// SLIDE 9 — 기존 서비스와의 차별점|// SLIDE 10 — 기존 서비스와의 차별점|' build.js)",
       "Bash(sed -i 's|// SLIDE 8 — AI 가족 편지|// SLIDE 9 — AI 가족 편지|' build.js)",
-      "Bash(unzip -l \"Z:/silverway/silverway/prompt/test.pptx\")"
+      "Bash(unzip -l \"Z:/silverway/silverway/prompt/test.pptx\")",
+      "Read(//tmp/**)",
+      "Bash(taskkill //F //IM node.exe //T)"
     ]
   },
   "hooks": {

@@ -23,8 +23,23 @@ const FEATURES = [
       "대전 지하철 AFC 과거 데이터를 바탕으로 해당 역·시간대의 예상 혼잡도를 미리 확인하세요.",
   },
   {
+    icon: "message",
+    title: "AI 위험도 해설",
+    isAI: true,
+    description:
+      "운전 위험 지수가 왜 이렇게 나왔는지, AI가 원인과 의미를 이해하기 쉬운 말로 풀어서 설명해드려요.",
+  },
+  {
+    icon: "sparkle",
+    title: "AI 출발시간 추천",
+    isAI: true,
+    description:
+      "하루 시간대별 위험지수·혼잡도·날씨를 AI가 종합 분석해 가장 부담이 적은 출발 시간과 그 이유를 추천해드려요.",
+  },
+  {
     icon: "users",
     title: "AI 가족 편지",
+    isAI: true,
     description:
       "분석 결과를 AI가 따뜻한 언어로 바꿔줍니다. 부모님께 감정 없이 데이터로 대화를 시작할 수 있어요.",
   },
@@ -63,7 +78,7 @@ export default function HomePage() {
             }}
           >
             {FEATURES.map((f) => (
-              <FeatureCard key={f.title} icon={f.icon} title={f.title} description={f.description} />
+              <FeatureCard key={f.title} icon={f.icon} title={f.title} description={f.description} isAI={f.isAI} />
             ))}
           </div>
         </Section>
